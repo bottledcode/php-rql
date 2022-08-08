@@ -2,6 +2,7 @@
 
 namespace r;
 
+use JsonSerializable;
 use ReflectionFunction;
 use r\Query;
 use r\Datum\ArrayDatum;
@@ -154,6 +155,10 @@ class DatumConverter
                     return false;
                 }
             }
+            return true;
+        }
+
+        if(is_object($v) && is_subclass_of($v, JsonSerializable::class)) {
             return true;
         }
 
