@@ -4,6 +4,7 @@ namespace r;
 
 use Iterator;
 use r\Exceptions\RqlDriverError;
+use r\ProtocolBuffer\ResponseResponseNote;
 use r\ProtocolBuffer\ResponseResponseType;
 
 class Cursor implements Iterator
@@ -28,7 +29,7 @@ class Cursor implements Iterator
     ) {
         $this->connection = $connection;
         $this->token = $token;
-        $this->notes = $notes;
+        $this->notes = array_map(fn($n) => ResponseResponseNote::tryFrom($n), $notes);
         $this->toNativeOptions = $toNativeOptions;
         $this->wasIterated = false;
 
@@ -129,11 +130,22 @@ class Cursor implements Iterator
         return $result;
     }
 
+    public function toGenerator(): \Generator
+    {
+        $i = 0;
+        foreach ($this as $val) {
+            yield $i++ => $val;
+        }
+    }
+
     public function bufferedCount(): int
     {
         return $this->currentSize - $this->currentIndex;
     }
 
+    /**
+     * @return array<int, ResponseResponseNote>
+     */
     public function getNotes(): array
     {
         return $this->notes;

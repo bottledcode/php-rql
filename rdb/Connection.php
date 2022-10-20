@@ -2,6 +2,12 @@
 
 namespace r;
 
+use r\Datum\ArrayDatum;
+use r\Datum\BoolDatum;
+use r\Datum\NullDatum;
+use r\Datum\NumberDatum;
+use r\Datum\ObjectDatum;
+use r\Datum\StringDatum;
 use r\Exceptions\RqlDriverError;
 use r\Exceptions\RqlServerError;
 use r\ProtocolBuffer\QueryQueryType;
@@ -14,7 +20,7 @@ class Connection extends DatumConverter
     private $socket;
     private string $host;
     private int $port;
-    private $defaultDb;
+    private Db|null $defaultDb;
     private string $user;
     private string $password;
     private array|null $activeTokens;
@@ -178,15 +184,8 @@ class Connection extends DatumConverter
 
     private function generateToken(): int
     {
-        $tries = 0;
-        $maxToken = 1 << 30;
-        do {
-            $token = \rand(0, $maxToken);
-            $haveCollision = isset($this->activeTokens[$token]);
-        } while ($haveCollision && $tries++ < 1024);
-        if ($haveCollision) {
-            throw new RqlDriverError("Unable to generate a unique token for the query.");
-        }
+        static $token = -1;
+        $token = ($token + 1) % (1 << 30);
         return $token;
     }
 
@@ -244,14 +243,14 @@ class Connection extends DatumConverter
         $responseSize = $responseHeader['size'];
         $responseBuf = $this->receiveStr($responseSize);
 
-        $response = json_decode($responseBuf);
-        if (json_last_error() != JSON_ERROR_NONE) {
-            throw new RqlDriverError("Unable to decode JSON response (error code " . json_last_error() . ")");
+        try {
+            $response = json_decode($responseBuf, true, flags: JSON_THROW_ON_ERROR);
+        } catch (\JsonException $exception) {
+            throw new RqlDriverError(
+                "Invalid response from server: Failed to decode JSON.", previous: $exception
+            );
         }
-        if (!is_object($response)) {
-            throw new RqlDriverError("Invalid response from server: Not an object.");
-        }
-        $response = (array)$response;
+
         if (!$noChecks) {
             $this->checkResponse($response, $responseToken, $token, $query);
         }
@@ -283,16 +282,15 @@ class Connection extends DatumConverter
 
     private function checkResponse(array $response, int $responseToken, int $token, Query $query = null)
     {
-        if (!isset($response['t'])) {
-            throw new RqlDriverError("Response message has no type.");
-        }
-        $type = ResponseResponseType::tryFrom($response['t']);
+        $type = ResponseResponseType::tryFrom(
+            $response['t'] ?? throw new RqlDriverError("Response message has no type.")
+        );
 
         if ($type === ResponseResponseType::PB_CLIENT_ERROR) {
             throw new RqlDriverError("Server says PHP-RQL is buggy: " . $response['r'][0]);
         }
 
-        if ($responseToken != $token) {
+        if ($responseToken !== $token) {
             throw new RqlDriverError(
                 'Received wrong token. Response does not match the request. '
                 . 'Expected ' . $token . ', received ' . $responseToken
@@ -346,7 +344,7 @@ class Connection extends DatumConverter
         $response = $this->receiveResponse($token);
         $type = ResponseResponseType::tryFrom($response['t']);
 
-        if ($type != ResponseResponseType::PB_SERVER_INFO) {
+        if ($type !== ResponseResponseType::PB_SERVER_INFO) {
             throw new RqlDriverError("Unexpected response type to server info query.");
         }
 
@@ -355,7 +353,7 @@ class Connection extends DatumConverter
     }
 
     private function createDatumFromResponse($response
-    ): Datum\ObjectDatum|Datum\StringDatum|Datum\BoolDatum|Datum\NumberDatum|Datum\NullDatum|Datum\ArrayDatum {
+    ): ObjectDatum|StringDatum|BoolDatum|NumberDatum|NullDatum|ArrayDatum {
         return $this->decodedJSONToDatum($response['r'][0]);
     }
 
@@ -369,12 +367,10 @@ class Connection extends DatumConverter
         }
 
         // Grab PHP-RQL specific options
-        $toNativeOptions = array();
+        $toNativeOptions = [];
         foreach (array('binaryFormat', 'timeFormat') as $opt) {
-            if (isset($options) && isset($options[$opt])) {
-                $toNativeOptions[$opt] = $options[$opt];
-                unset($options[$opt]);
-            }
+            $toNativeOptions[$opt] = $options[$opt] ?? null;
+            unset($options[$opt]);
         }
 
         // Generate a token for the request
@@ -382,14 +378,12 @@ class Connection extends DatumConverter
 
         // Send the request
         $globalOptargs = $this->convertOptions($options);
-        if (isset($this->defaultDb) && !isset($options['db'])) {
-            $globalOptargs['db'] = $this->defaultDb->encodeServerRequest();
-        }
+        $globalOptargs['db'] = $globalOptargs['db'] ?? $this->defaultDb?->encodeServerRequest();
 
         $jsonQuery = [
             QueryQueryType::PB_START->value,
             $query->encodeServerRequest(),
-            (object)$globalOptargs
+            (object)array_filter($globalOptargs),
         ];
 
         $this->sendQuery($token, $jsonQuery);

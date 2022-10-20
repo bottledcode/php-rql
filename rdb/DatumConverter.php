@@ -36,8 +36,11 @@ class DatumConverter
         if (is_string($json)) {
             return StringDatum::decodeServerResponse($json);
         }
-        if (is_array($json)) {
+        if (is_array($json) && array_is_list($json)) {
             return ArrayDatum::decodeServerResponse($json);
+        }
+        if (is_array($json)) {
+            return ObjectDatum::decodeServerResponse($json);
         }
         if (is_object($json)) {
             return ObjectDatum::decodeServerResponse($json);
