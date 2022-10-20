@@ -2,8 +2,11 @@
 
 namespace r\Queries\Tables;
 
+use r\Datum\StringDatum;
 use r\Exceptions\RqlDriverError;
+use r\Options\TableOptions;
 use r\ProtocolBuffer\TermTermType;
+use r\Queries\Dbs\Db;
 use r\Queries\Geo\GetIntersecting;
 use r\Queries\Geo\GetNearest;
 use r\Queries\Index\IndexCreate;
@@ -20,11 +23,8 @@ use r\ValuedQuery\ValuedQuery;
 
 class Table extends ValuedQuery
 {
-    public function __construct($database, $tableName, $useOutdatedOrOpts = null)
+    public function __construct(Db|null $database, string $tableName, TableOptions $options = new TableOptions())
     {
-        if (isset($database) && !is_a($database, 'r\Queries\Dbs\Db')) {
-            throw new RqlDriverError("Database is not a Db object.");
-        }
         $tableName = $this->nativeToDatum($tableName);
         if (isset($useOutdated) && !is_bool($useOutdated)) {
             throw new RqlDriverError("Use outdated must be bool.");
@@ -35,17 +35,11 @@ class Table extends ValuedQuery
             $this->setPositionalArg($i++, $database);
         }
         $this->setPositionalArg($i++, $tableName);
-        if (isset($useOutdatedOrOpts)) {
-            if (is_bool($useOutdatedOrOpts)) {
-                if ($useOutdatedOrOpts) {
-                    $this->setOptionalArg('read_mode', new StringDatum("outdated"));
-                }
-            } else {
-                foreach ($useOutdatedOrOpts as $opt => $val) {
-                    $this->setOptionalArg($opt, $this->nativeToDatum($val));
-                }
-            }
-        }
+        $options->readMode !== null && $this->setOptionalArg('read_mode', new StringDatum($options->readMode->value));
+        $options->identifierFormat !== null && $this->setOptionalArg(
+            'identifier_format',
+            new StringDatum($options->identifierFormat->value)
+        );
     }
 
     public function insert($document, $opts = null): Insert

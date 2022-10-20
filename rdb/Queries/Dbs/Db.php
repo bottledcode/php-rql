@@ -2,6 +2,7 @@
 
 namespace r\Queries\Dbs;
 
+use r\Options\TableOptions;
 use r\ProtocolBuffer\TermTermType;
 use r\Queries\Tables\Rebalance;
 use r\Queries\Tables\Reconfigure;
@@ -20,9 +21,9 @@ class Db extends Query
         $this->setPositionalArg(0, $dbName);
     }
 
-    public function table($tableName, $useOutdatedOrOpts = null): Table
+    public function table(string $tableName, TableOptions $options = new TableOptions()): Table
     {
-        return new Table($this, $tableName, $useOutdatedOrOpts);
+        return new Table($this, $tableName, $options);
     }
 
     public function tableCreate($tableName, $options = null): TableCreate

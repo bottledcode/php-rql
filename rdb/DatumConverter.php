@@ -189,7 +189,7 @@ class DatumConverter
         }
     }
 
-    public function nativeToFunction(object|callable $f): RFunction|\r\Query
+    public function nativeToFunction(Query|callable $f): RFunction|\r\Query
     {
         if (is_object($f) && is_subclass_of($f, Query::class)) {
             return $this->wrapImplicitVar($f);

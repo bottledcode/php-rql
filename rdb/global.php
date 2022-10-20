@@ -10,6 +10,7 @@ use r\Datum\NumberDatum;
 use r\Datum\ObjectDatum;
 use r\Datum\StringDatum;
 use r\Exceptions\RqlDriverError;
+use r\Options\TableOptions;
 use r\Ordering\Asc;
 use r\Ordering\Desc;
 use r\Queries\Control\Args;
@@ -90,35 +91,96 @@ use r\ValuedQuery\RObject;
 
 // ------------- Global functions in namespace r -------------
 
+/**
+ * Connect to a database.
+ *
+ * @see https://rethinkdb.com/api/javascript/connect/
+ * @param ConnectionOptions $connectionOptions
+ * @return Connection
+ */
 function connect(
     ConnectionOptions $connectionOptions
 ): Connection {
     return new Connection($connectionOptions);
 }
 
+/**
+ * Reference a database.
+ *
+ * The db command is optional. If it is not present in a query, the query will run against the default database for the
+ * connection, specified in the db argument to connect.
+ * @see https://rethinkdb.com/api/javascript/db/
+ * @param string $dbName The name of the database to use.
+ * @return Db
+ */
 function db(string $dbName): Db
 {
     return new Db($dbName);
 }
 
+/**
+ * Create a database. A RethinkDB database is a collection of tables, similar to relational databases.
+ *
+ * If successful, the command returns an object with two fields:
+ *
+ * = dbs_created: always 1.
+ * = config_changes: a list containing one object with two fields, old_val and new_val:
+ *  = old_val: always null.
+ *  = new_val: the database’s new config value.
+ * If a database with the same name already exists, the command throws ReqlRuntimeError.
+ *
+ * Note: Only alphanumeric characters, hyphens and underscores are valid for the database name.
+ * @see https://rethinkdb.com/api/javascript/db_create
+ * @param string $dbName The name of the database to create.
+ * @return DbCreate
+ */
 function dbCreate(string $dbName): DbCreate
 {
     return new DbCreate($dbName);
 }
 
+/**
+ * Drop a database. The database, all its tables, and corresponding data will be deleted.
+ *
+ * If successful, the command returns an object with two fields:
+ *
+ * - dbs_dropped: always 1.
+ * - tables_dropped: the number of tables in the dropped database.
+ * - config_changes: a list containing one two-field object, old_val and new_val:
+ *  - old_val: the database’s original config value.
+ *  - new_val: always null.
+ * If the given database does not exist, the command throws ReqlRuntimeError.
+ * @see https://rethinkdb.com/api/javascript/db_drop
+ * @param string $dbName The database to drop
+ * @return DbDrop
+ */
 function dbDrop(string $dbName): DbDrop
 {
     return new DbDrop($dbName);
 }
 
+/**
+ * List all database names in the system. The result is a list of strings.
+ * @see https://rethinkdb.com/api/javascript/db_list
+ * @return DbList
+ */
 function dbList(): DbList
 {
     return new DbList();
 }
 
-function table(string $tableName, bool|array $useOutdatedOrOpts = null): Table
+/**
+ * Return all documents in a table. Other commands may be chained after table to return a subset of documents (such as
+ * get and filter) or perform further processing.
+ *
+ * @param string $tableName The name of the table to read from.
+ * @param TableOptions $options
+ * @return Table
+ * @throws RqlDriverError
+ */
+function table(string $tableName, TableOptions $options = new TableOptions()): Table
 {
-    return new Table(null, $tableName, $useOutdatedOrOpts);
+    return new Table(null, $tableName, $options);
 }
 
 function tableCreate(string $tableName, array $options = null): TableCreate
@@ -136,7 +198,7 @@ function tableList(): TableList
     return new TableList(null);
 }
 
-function rDo($args, $inExpr): RDo
+function rDo(array $args, Query|callable $inExpr): RDo
 {
     return new RDo($args, $inExpr);
 }
