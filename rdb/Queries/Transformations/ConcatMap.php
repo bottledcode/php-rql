@@ -15,7 +15,7 @@ class ConcatMap extends ValuedQuery
         $this->setPositionalArg(1, $mappingFunction);
     }
 
-    protected function getTermType()
+    protected function getTermType(): TermTermType
     {
         return TermTermType::PB_CONCAT_MAP;
     }

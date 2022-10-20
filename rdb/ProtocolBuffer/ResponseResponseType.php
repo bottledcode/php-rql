@@ -2,14 +2,14 @@
 
 namespace r\ProtocolBuffer;
 
-class ResponseResponseType
+enum ResponseResponseType: int
 {
-    const PB_CLIENT_ERROR      = 16;
-    const PB_COMPILE_ERROR     = 17;
-    const PB_RUNTIME_ERROR     = 18;
-    const PB_SERVER_INFO       = 5;
-    const PB_SUCCESS_ATOM      = 1;
-    const PB_SUCCESS_PARTIAL   = 3;
-    const PB_SUCCESS_SEQUENCE  = 2;
-    const PB_WAIT_COMPLETE     = 4;
+    case PB_CLIENT_ERROR = 16;
+    case PB_COMPILE_ERROR = 17;
+    case PB_RUNTIME_ERROR = 18;
+    case PB_SERVER_INFO = 5;
+    case PB_SUCCESS_ATOM = 1;
+    case PB_SUCCESS_PARTIAL = 3;
+    case PB_SUCCESS_SEQUENCE = 2;
+    case PB_WAIT_COMPLETE = 4;
 }

@@ -12,7 +12,7 @@ class RVar extends ValuedQuery
 
     private $id;
 
-    private static $nextVarId = 1;
+    private static int $nextVarId = 1;
 
     public function __construct($name)
     {
@@ -31,7 +31,7 @@ class RVar extends ValuedQuery
         $this->setPositionalArg(0, new NumberDatum($this->id));
     }
 
-    protected function getTermType()
+    protected function getTermType(): TermTermType
     {
         return TermTermType::PB_VAR;
     }

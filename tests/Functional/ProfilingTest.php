@@ -18,7 +18,7 @@ class ProfilingTest extends TestCase
 
     public function testProfileNoOpts()
     {
-        $res = \r\expr(1)->profile($this->conn, null, $status);
+        $res = \r\expr(1)->profile($this->conn, [], $status);
 
         $this->assertEquals('Evaluating datum.', $res[0]['description']);
         $this->assertEquals(1, $status);

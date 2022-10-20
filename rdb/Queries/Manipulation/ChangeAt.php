@@ -17,7 +17,7 @@ class ChangeAt extends ValuedQuery
         $this->setPositionalArg(2, $value);
     }
 
-    protected function getTermType()
+    protected function getTermType(): TermTermType
     {
         return TermTermType::PB_CHANGE_AT;
     }

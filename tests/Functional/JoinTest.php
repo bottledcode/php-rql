@@ -6,14 +6,14 @@ use r\Tests\TestCase;
 
 class JoinTest extends TestCase
 {
-    public function setUp()
+    public function setUp(): void
     {
         $this->conn = $this->getConnection();
         $this->data = $this->useDataset('Joins');
         $this->data->populate();
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         $this->data->truncate();
     }
@@ -216,10 +216,7 @@ class JoinTest extends TestCase
     {
         $data = $this->toArray($data->toArray());
         usort($data, function ($a, $b) {
-            if ($a['left']['id'] == $b['left']['id']) {
-                return $a['right']['id'] > $b['right']['id'];
-            }
-            return $a['left']['id'] > $b['left']['id'];
+            return $a['left']['id'] <=> $b['left']['id'];
         });
 
         return $data;

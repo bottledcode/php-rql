@@ -20,7 +20,7 @@ class Json extends ValuedQuery
         $this->setPositionalArg(0, $json);
     }
 
-    protected function getTermType()
+    protected function getTermType(): TermTermType
     {
         return TermTermType::PB_JSON;
     }

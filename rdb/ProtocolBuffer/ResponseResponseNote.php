@@ -2,11 +2,11 @@
 
 namespace r\ProtocolBuffer;
 
-class ResponseResponseNote
+enum ResponseResponseNote: int
 {
-    const PB_ATOM_FEED            = 2;
-    const PB_INCLUDES_STATES      = 5;
-    const PB_ORDER_BY_LIMIT_FEED  = 3;
-    const PB_SEQUENCE_FEED        = 1;
-    const PB_UNIONED_FEED         = 4;
+    case PB_ATOM_FEED = 2;
+    case PB_INCLUDES_STATES = 5;
+    case PB_ORDER_BY_LIMIT_FEED = 3;
+    case PB_SEQUENCE_FEED = 1;
+    case PB_UNIONED_FEED = 4;
 }

@@ -15,7 +15,7 @@ class OffsetsOf extends ValuedQuery
         $this->setPositionalArg(1, $predicate);
     }
 
-    protected function getTermType()
+    protected function getTermType(): TermTermType
     {
         return TermTermType::PB_OFFSETS_OF;
     }

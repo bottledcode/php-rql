@@ -7,19 +7,19 @@ use r\Exceptions\RqlDriverError;
 
 class StringDatum extends Datum
 {
-    public function encodeServerRequest()
+    public function encodeServerRequest(): string
     {
         return (string)$this->getValue();
     }
 
-    public static function decodeServerResponse($json)
+    public static function decodeServerResponse($json): StringDatum
     {
         $result = new StringDatum();
         $result->setValue((string)$json);
         return $result;
     }
 
-    public function setValue($val)
+    public function setValue(array|object|string|null|float|bool|int $val): void
     {
         if (!is_string($val)) {
             throw new RqlDriverError("Not a string");
@@ -27,7 +27,7 @@ class StringDatum extends Datum
         parent::setValue($val);
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         return "'" . $this->getValue() . "'";
     }

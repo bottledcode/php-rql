@@ -18,7 +18,7 @@ class GetField extends ValuedQuery
         $this->setPositionalArg(1, $attribute);
     }
 
-    protected function getTermType()
+    protected function getTermType(): TermTermType
     {
         return TermTermType::PB_GET_FIELD;
     }

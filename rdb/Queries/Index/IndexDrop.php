@@ -15,7 +15,7 @@ class IndexDrop extends ValuedQuery
         $this->setPositionalArg(1, $indexName);
     }
 
-    protected function getTermType()
+    protected function getTermType(): TermTermType
     {
         return TermTermType::PB_INDEX_DROP;
     }

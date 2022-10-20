@@ -2,110 +2,24 @@
 
 namespace r\Queries\Tables;
 
-use r\ValuedQuery\ValuedQuery;
-use r\Queries\Selecting\Get;
-use r\Queries\Selecting\GetAll;
-use r\Queries\Selecting\GetMultiple;
+use r\Exceptions\RqlDriverError;
+use r\ProtocolBuffer\TermTermType;
 use r\Queries\Geo\GetIntersecting;
 use r\Queries\Geo\GetNearest;
-use r\Queries\Writing\Sync;
-use r\Queries\Writing\Insert;
 use r\Queries\Index\IndexCreate;
 use r\Queries\Index\IndexDrop;
 use r\Queries\Index\IndexList;
-use r\Queries\Index\IndexWait;
 use r\Queries\Index\IndexStatus;
-use r\Queries\Tables\Wait;
-use r\Queries\Tables\Reconfigure;
-use r\Queries\Tables\Rebalance;
-use r\Queries\Tables\Status;
-use r\Exceptions\RqlDriverError;
-use r\ProtocolBuffer\TermTermType;
+use r\Queries\Index\IndexWait;
+use r\Queries\Selecting\Get;
+use r\Queries\Selecting\GetAll;
+use r\Queries\Selecting\GetMultiple;
+use r\Queries\Writing\Insert;
+use r\Queries\Writing\Sync;
+use r\ValuedQuery\ValuedQuery;
 
 class Table extends ValuedQuery
 {
-    public function insert($document, $opts = null)
-    {
-        return new Insert($this, $document, $opts);
-    }
-    public function get($key)
-    {
-        return new Get($this, $key);
-    }
-    public function getAll($key, $opts = null)
-    {
-        return new GetAll($this, $key, $opts);
-    }
-    public function getMultiple($keys, $opts = null)
-    {
-        return new GetMultiple($this, $keys, $opts);
-    }
-    public function getIntersecting($geo, $opts = null)
-    {
-        return new GetIntersecting($this, $geo, $opts);
-    }
-    public function getNearest($center, $opts = null)
-    {
-        return new GetNearest($this, $center, $opts);
-    }
-    public function sync()
-    {
-        return new Sync($this);
-    }
-    public function indexCreate($indexName, $keyFunction = null)
-    {
-        return new IndexCreate($this, $indexName, $keyFunction);
-    }
-    public function indexCreateMulti($indexName, $keyFunction = null)
-    {
-        return new IndexCreate($this, $indexName, $keyFunction, array('multi' => true));
-    }
-    public function indexCreateGeo($indexName, $keyFunction = null)
-    {
-        return new IndexCreate($this, $indexName, $keyFunction, array('geo' => true));
-    }
-    public function indexCreateMultiGeo($indexName, $keyFunction = null)
-    {
-        return new IndexCreate($this, $indexName, $keyFunction, array('multi' => true, 'geo' => true));
-    }
-    public function indexDrop($indexName)
-    {
-        return new IndexDrop($this, $indexName);
-    }
-    public function indexList()
-    {
-        return new IndexList($this);
-    }
-    public function indexStatus($indexNames = null)
-    {
-        return new IndexStatus($this, $indexNames);
-    }
-    public function indexWait($indexNames = null)
-    {
-        return new IndexWait($this, $indexNames);
-    }
-    public function wait($opts = null)
-    {
-        return new Wait($this, $opts);
-    }
-    public function reconfigure($opts = null)
-    {
-        return new Reconfigure($this, $opts);
-    }
-    public function rebalance()
-    {
-        return new Rebalance($this);
-    }
-    public function config()
-    {
-        return new Config($this);
-    }
-    public function status()
-    {
-        return new Status($this);
-    }
-
-
     public function __construct($database, $tableName, $useOutdatedOrOpts = null)
     {
         if (isset($database) && !is_a($database, 'r\Queries\Dbs\Db')) {
@@ -134,7 +48,107 @@ class Table extends ValuedQuery
         }
     }
 
-    protected function getTermType()
+    public function insert($document, $opts = null): Insert
+    {
+        return new Insert($this, $document, $opts);
+    }
+
+    public function get($key): Get
+    {
+        return new Get($this, $key);
+    }
+
+    public function getAll($key, $opts = null): GetAll
+    {
+        return new GetAll($this, $key, $opts);
+    }
+
+    public function getMultiple($keys, $opts = null): GetMultiple
+    {
+        return new GetMultiple($this, $keys, $opts);
+    }
+
+    public function getIntersecting($geo, $opts = null): GetIntersecting
+    {
+        return new GetIntersecting($this, $geo, $opts);
+    }
+
+    public function getNearest($center, $opts = null): GetNearest
+    {
+        return new GetNearest($this, $center, $opts);
+    }
+
+    public function sync(): Sync
+    {
+        return new Sync($this);
+    }
+
+    public function indexCreate($indexName, $keyFunction = null): IndexCreate
+    {
+        return new IndexCreate($this, $indexName, $keyFunction);
+    }
+
+    public function indexCreateMulti($indexName, $keyFunction = null): IndexCreate
+    {
+        return new IndexCreate($this, $indexName, $keyFunction, array('multi' => true));
+    }
+
+    public function indexCreateGeo($indexName, $keyFunction = null): IndexCreate
+    {
+        return new IndexCreate($this, $indexName, $keyFunction, array('geo' => true));
+    }
+
+    public function indexCreateMultiGeo($indexName, $keyFunction = null): IndexCreate
+    {
+        return new IndexCreate($this, $indexName, $keyFunction, array('multi' => true, 'geo' => true));
+    }
+
+    public function indexDrop($indexName): IndexDrop
+    {
+        return new IndexDrop($this, $indexName);
+    }
+
+    public function indexList(): IndexList
+    {
+        return new IndexList($this);
+    }
+
+    public function indexStatus($indexNames = null): IndexStatus
+    {
+        return new IndexStatus($this, $indexNames);
+    }
+
+    public function indexWait($indexNames = null): IndexWait
+    {
+        return new IndexWait($this, $indexNames);
+    }
+
+    public function wait($opts = null): Wait
+    {
+        return new Wait($this, $opts);
+    }
+
+    public function reconfigure($opts = null): Reconfigure
+    {
+        return new Reconfigure($this, $opts);
+    }
+
+    public function rebalance(): Rebalance
+    {
+        return new Rebalance($this);
+    }
+
+    public function config(): Config
+    {
+        return new Config($this);
+    }
+
+    public function status(): Status
+    {
+        return new Status($this);
+    }
+
+    protected function getTermType(): TermTermType
     {
         return TermTermType::PB_TABLE;
     }

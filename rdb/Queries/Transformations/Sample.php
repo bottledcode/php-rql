@@ -15,7 +15,7 @@ class Sample extends ValuedQuery
         $this->setPositionalArg(1, $n);
     }
 
-    protected function getTermType()
+    protected function getTermType(): TermTermType
     {
         return TermTermType::PB_SAMPLE;
     }

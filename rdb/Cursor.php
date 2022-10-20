@@ -5,27 +5,26 @@ namespace r;
 use Iterator;
 use r\Exceptions\RqlDriverError;
 use r\ProtocolBuffer\ResponseResponseType;
-use r\DatumConverter;
 
 class Cursor implements Iterator
 {
 
-    private $token;
-    private $connection;
-    private $notes;
-    private $toNativeOptions;
-    private $currentData;
-    private $currentSize;
-    private $currentIndex;
-    private $isComplete;
-    private $wasIterated;
+    private int $token;
+    private Connection $connection;
+    private array $notes;
+    private array $toNativeOptions;
+    private array $currentData;
+    private int $currentSize;
+    private int $currentIndex;
+    private bool $isComplete;
+    private bool $wasIterated;
 
     public function __construct(
         Connection $connection,
-        $initialResponse,
-        $token,
-        $notes,
-        $toNativeOptions
+        array $initialResponse,
+        int $token,
+        array $notes,
+        array $toNativeOptions
     ) {
         $this->connection = $connection;
         $this->token = $token;
@@ -37,86 +36,43 @@ class Cursor implements Iterator
     }
 
     // PHP iterator interface
-    public function rewind()
+
+    private function setBatch(array $response): void
+    {
+        $dc = new DatumConverter;
+        $type = ResponseResponseType::tryFrom($response['t']);
+        $this->isComplete = $type === ResponseResponseType::PB_SUCCESS_SEQUENCE;
+        $this->currentIndex = 0;
+        $this->currentSize = \count($response['r']);
+        $this->currentData = [];
+        foreach ($response['r'] as $row) {
+            $this->currentData[] = $dc->decodedJSONToDatum($row);
+        }
+    }
+
+    public function rewind(): void
     {
         if ($this->wasIterated) {
             throw new RqlDriverError("Rewind() not supported. You can only iterate over a cursor once.");
         }
     }
-    public function next()
+
+    public function next(): void
     {
-        $this->requestMoreIfNecessary();
         if (!$this->valid()) {
             throw new RqlDriverError("No more data available.");
         }
         $this->wasIterated = true;
         $this->currentIndex++;
     }
-    public function valid()
+
+    public function valid(): bool
     {
         $this->requestMoreIfNecessary();
         return !$this->isComplete || ($this->currentIndex < $this->currentSize);
     }
-    public function key()
-    {
-        return null;
-    }
-    public function current()
-    {
-        $this->requestMoreIfNecessary();
-        if (!$this->valid()) {
-            throw new RqlDriverError("No more data available.");
-        }
-        return $this->currentData[$this->currentIndex]->toNative($this->toNativeOptions);
-    }
 
-    public function toArray()
-    {
-        $result = array();
-        foreach ($this as $val) {
-            $result[] = $val;
-        }
-        return $result;
-    }
-
-    public function close()
-    {
-        if (!$this->isComplete) {
-            // Cancel the request
-            $this->connection->stopQuery($this->token);
-            $this->isComplete = true;
-        }
-        $this->currentIndex = 0;
-        $this->currentSize = 0;
-        $this->currentData = array();
-    }
-
-    public function bufferedCount()
-    {
-        $this->currentSize - $this->currentIndex;
-    }
-
-    public function getNotes()
-    {
-        return $this->notes;
-    }
-
-    public function __toString()
-    {
-        return "Cursor";
-    }
-
-
-
-    public function __destruct()
-    {
-        if ($this->connection->isOpen()) {
-            // Cancel the request
-            $this->close();
-        }
-    }
-
-    private function requestMoreIfNecessary()
+    private function requestMoreIfNecessary(): void
     {
         while ($this->currentIndex == $this->currentSize) {
             // We are at the end of currentData. Request more if available
@@ -127,7 +83,7 @@ class Cursor implements Iterator
         }
     }
 
-    private function requestNewBatch()
+    private function requestNewBatch(): void
     {
         try {
             $response = $this->connection->continueQuery($this->token);
@@ -139,15 +95,60 @@ class Cursor implements Iterator
         }
     }
 
-    private function setBatch($response)
+    public function close(): void
     {
-        $dc = new DatumConverter;
-        $this->isComplete = $response['t'] == ResponseResponseType::PB_SUCCESS_SEQUENCE;
+        if (!$this->isComplete) {
+            // Cancel the request
+            $this->connection->stopQuery($this->token);
+            $this->isComplete = true;
+        }
         $this->currentIndex = 0;
-        $this->currentSize = \count($response['r']);
+        $this->currentSize = 0;
         $this->currentData = array();
-        foreach ($response['r'] as $row) {
-            $this->currentData[] = $datum = $dc->decodedJSONToDatum($row);
+    }
+
+    public function key(): mixed
+    {
+        return $this->currentIndex;
+    }
+
+    public function current(): mixed
+    {
+        if (!$this->valid()) {
+            throw new RqlDriverError("No more data available.");
+        }
+        return $this->currentData[$this->currentIndex]->toNative($this->toNativeOptions);
+    }
+
+    public function toArray(): array
+    {
+        $result = [];
+        foreach ($this as $val) {
+            $result[] = $val;
+        }
+        return $result;
+    }
+
+    public function bufferedCount(): int
+    {
+        return $this->currentSize - $this->currentIndex;
+    }
+
+    public function getNotes(): array
+    {
+        return $this->notes;
+    }
+
+    public function __toString(): string
+    {
+        return "Cursor";
+    }
+
+    public function __destruct()
+    {
+        if ($this->connection->isOpen()) {
+            // Cancel the request
+            $this->close();
         }
     }
 }

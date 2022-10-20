@@ -16,7 +16,7 @@ class Get extends ValuedQuery
         $this->setPositionalArg(1, $key);
     }
 
-    protected function getTermType()
+    protected function getTermType(): TermTermType
     {
         return TermTermType::PB_GET;
     }

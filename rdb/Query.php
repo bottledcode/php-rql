@@ -10,40 +10,34 @@ use r\DatumConverter;
 
 abstract class Query extends DatumConverter
 {
-    private $positionalArgs = array();
-    private $optionalArgs = array();
-    private $unwrappedImplicitVar = false;
+    private array $positionalArgs = [];
+    private array $optionalArgs = [];
+    private bool $unwrappedImplicitVar = false;
 
-    abstract protected function getTermType();
+    abstract protected function getTermType(): TermTermType;
 
-    protected function setOptionalArg($key, Query $val)
+    protected function setOptionalArg(string $key, Query $val): void
     {
-        if (!is_string($key)) {
-            throw new RqlDriverError("Internal driver error: Got a non-string key for an optional argument.");
-        }
         if ($val->hasUnwrappedImplicitVar()) {
             $this->unwrappedImplicitVar = true;
         }
         $this->optionalArgs[$key] = $val;
     }
 
-    protected function setPositionalArg($pos, Query $arg)
+    protected function setPositionalArg(int $pos, Query $arg): void
     {
-        if (!is_numeric($pos)) {
-            throw new RqlDriverError("Internal driver error: Got a non-numeric position for a positional argument.");
-        }
         if ($arg->hasUnwrappedImplicitVar()) {
             $this->unwrappedImplicitVar = true;
         }
         $this->positionalArgs[$pos] = $arg;
     }
 
-    public function hasUnwrappedImplicitVar()
+    public function hasUnwrappedImplicitVar(): bool
     {
         return $this->unwrappedImplicitVar;
     }
 
-    public function encodeServerRequest()
+    public function encodeServerRequest(): mixed
     {
         $args = array();
         foreach ($this->positionalArgs as $i => $arg) {
@@ -56,37 +50,34 @@ abstract class Query extends DatumConverter
         return array($this->getTermType(), $args, (object)$optargs);
     }
 
-    public function run(Connection $connection, $options = null)
+    public function run(Connection $connection, $options = null): Cursor|array|string|null|\DateTimeInterface|float|int|bool
     {
         return $connection->run($this, $options, $profile);
     }
 
-    public function profile(Connection $connection, $options = null, &$result = null)
+    public function profile(Connection $connection, array $options = [], Cursor|array|string|null &$result = null)
     {
-        if (!isset($options)) {
-            $options = array();
-        }
         $options['profile'] = true;
         $result = $connection->run($this, $options, $profile);
         return $profile;
     }
 
-    public function info()
+    public function info(): Info
     {
         return new Info($this);
     }
-    public function rDefault($defaultCase)
+    public function rDefault($defaultCase): RDefault
     {
         return new RDefault($this, $defaultCase);
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         $backtrace = null;
         return $this->toString($backtrace);
     }
 
-    public function toString(&$backtrace)
+    public function toString(&$backtrace): string
     {
         // TODO (daniel): This kind of printing backtraces is pretty hacky. Overhaul this.
         //  Maybe we could generate a PHP backtrace structure...
@@ -96,17 +87,7 @@ abstract class Query extends DatumConverter
             $backtraceFrame = $backtrace->consumeFrame();
         }
 
-        $types = (new \ReflectionObject(new TermTermType()));
-        $types = $types->getConstants();
-        $type = "UNKNOWN";
-        foreach ($types as $key => $val) {
-            if (substr($key, 0, 3) != "PB_") {
-                continue;
-            }
-            if ($val == $this->getTermType()) {
-                $type = substr($key, 3);
-            }
-        }
+        $type = $this->getTermType()->name;
 
         $argList = "";
         foreach ($this->positionalArgs as $i => $arg) {

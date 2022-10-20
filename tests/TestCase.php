@@ -2,11 +2,11 @@
 
 namespace r\Tests;
 
-class TestCase extends \PHPUnit_Framework_TestCase
+class TestCase extends \PHPUnit\Framework\TestCase
 {
     protected $datasets = array();
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->conn = $this->getConnection();
     }
@@ -55,14 +55,11 @@ class TestCase extends \PHPUnit_Framework_TestCase
         );
 
         foreach ($statuses as $s) {
-            $status[$s] = isset($status[$s]) ? $status[$s] : 0;
+            $status[$s] = $status[$s] ?? 0;
         }
 
-
-        $data->setFlags($data::ARRAY_AS_PROPS);
-
         foreach ($statuses as $s) {
-            $res[$s] = isset($data->$s) ? $data->$s : 0;
+            $res[$s] = $data[$s] ?? 0;
         }
 
         $this->assertEquals($status, $res);

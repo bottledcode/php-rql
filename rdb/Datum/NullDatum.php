@@ -7,19 +7,19 @@ use r\Exceptions\RqlDriverError;
 
 class NullDatum extends Datum
 {
-    public function encodeServerRequest()
+    public function encodeServerRequest(): bool|null
     {
         return null;
     }
 
-    public static function decodeServerResponse($json)
+    public static function decodeServerResponse(mixed $json): NullDatum
     {
         $result = new NullDatum();
         $result->setValue(null);
         return $result;
     }
 
-    public function setValue($val)
+    public function setValue(array|object|string|null|float|bool|int $val): void
     {
         if (!is_null($val)) {
             throw new RqlDriverError("Not null: " . $val);
@@ -27,7 +27,7 @@ class NullDatum extends Datum
         parent::setValue($val);
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         return "null";
     }

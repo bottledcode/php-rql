@@ -8,7 +8,7 @@ use r\ProtocolBuffer\TermTermType;
 
 class Iso8601 extends ValuedQuery
 {
-    public function __construct($iso8601Date, $opts = null)
+    public function __construct(string $iso8601Date, array|null $opts = null)
     {
         $iso8601Date = $this->nativeToDatum($iso8601Date);
 
@@ -23,7 +23,7 @@ class Iso8601 extends ValuedQuery
         }
     }
 
-    protected function getTermType()
+    protected function getTermType(): TermTermType
     {
         return TermTermType::PB_ISO8601;
     }

@@ -2,36 +2,31 @@
 
 namespace r;
 
-use r\DatumConverter;
-use r\Handshake;
-use r\Queries\Dbs\Db;
+use r\Exceptions\RqlDriverError;
+use r\Exceptions\RqlServerError;
 use r\ProtocolBuffer\QueryQueryType;
 use r\ProtocolBuffer\ResponseResponseType;
-use r\Exceptions\RqlServerError;
-use r\Exceptions\RqlDriverError;
-use r\ProtocolBuffer\VersionDummyVersion;
-use r\ProtocolBuffer\VersionDummyProtocol;
+use r\Queries\Dbs\Db;
 
 class Connection extends DatumConverter
 {
+    public string $defaultDbName;
     private $socket;
-    private $host;
-    private $port;
+    private string $host;
+    private int $port;
     private $defaultDb;
-    private $user;
-    private $password;
-    private $activeTokens;
-    private $timeout;
-    private $ssl;
-
-    public $defaultDbName;
+    private string $user;
+    private string $password;
+    private array|null $activeTokens;
+    private int|null $timeout;
+    private array|bool|null $ssl;
 
     public function __construct(
-        $optsOrHost = null,
-        $port = null,
-        $db = null,
-        $apiKey = null,
-        $timeout = null
+        string|array|null $optsOrHost = null,
+        int|null $port = null,
+        string|null $db = null,
+        string|null $apiKey = null,
+        int|null $timeout = null
     ) {
         if (is_array($optsOrHost)) {
             $opts = $optsOrHost;
@@ -118,311 +113,19 @@ class Connection extends DatumConverter
         $this->connect();
     }
 
-    public function __destruct()
+    public function useDb(string $dbName): void
     {
-        if ($this->isOpen()) {
-            $this->close(false);
-        }
-    }
-
-    public function close($noreplyWait = true)
-    {
-        if (!$this->isOpen()) {
-            throw new RqlDriverError("Not connected.");
-        }
-
-        if ($noreplyWait) {
-            $this->noreplyWait();
-        }
-
-        fclose($this->socket);
-        $this->socket = null;
-        $this->activeTokens = null;
-    }
-
-    public function reconnect($noreplyWait = true)
-    {
-        if ($this->isOpen()) {
-            $this->close($noreplyWait);
-        }
-        $this->connect();
-    }
-
-    public function isOpen()
-    {
-        return isset($this->socket);
-    }
-
-    public function useDb($dbName)
-    {
-        if (!is_string($dbName)) {
-            throw new RqlDriverError("Database must be a string.");
-        }
         $this->defaultDbName = $dbName;
         $this->defaultDb = new Db($dbName);
     }
 
-    public function setTimeout($timeout)
+    public function setTimeout(int|float $timeout): void
     {
-        if (!is_numeric($timeout)) {
-            throw new RqlDriverError("Timeout must be a number.");
-        }
         $this->applyTimeout($timeout);
         $this->timeout = $timeout;
     }
 
-    public function noreplyWait()
-    {
-        if (!$this->isOpen()) {
-            throw new RqlDriverError("Not connected.");
-        }
-
-        // Generate a token for the request
-        $token = $this->generateToken();
-
-        // Send the request
-        $jsonQuery = array(QueryQueryType::PB_NOREPLY_WAIT);
-        $this->sendQuery($token, $jsonQuery);
-
-        // Await the response
-        $response = $this->receiveResponse($token);
-
-        if ($response['t'] != ResponseResponseType::PB_WAIT_COMPLETE) {
-            throw new RqlDriverError("Unexpected response type to noreplyWait query.");
-        }
-    }
-
-    public function server()
-    {
-        if (!$this->isOpen()) {
-            throw new RqlDriverError("Not connected.");
-        }
-
-        // Generate a token for the request
-        $token = $this->generateToken();
-
-        // Send the request
-        $jsonQuery = array(QueryQueryType::PB_SERVER_INFO);
-        $this->sendQuery($token, $jsonQuery);
-
-        // Await the response
-        $response = $this->receiveResponse($token);
-
-        if ($response['t'] != ResponseResponseType::PB_SERVER_INFO) {
-            throw new RqlDriverError("Unexpected response type to server info query.");
-        }
-
-        $toNativeOptions = array();
-        return $this->createDatumFromResponse($response)->toNative($toNativeOptions);
-    }
-
-    public function run(Query $query, $options = array(), &$profile = '')
-    {
-        if (isset($options) && !is_array($options)) {
-            throw new RqlDriverError("Options must be an array.");
-        }
-        if (!$this->isOpen()) {
-            throw new RqlDriverError("Not connected.");
-        }
-
-        // Grab PHP-RQL specific options
-        $toNativeOptions = array();
-        foreach (array('binaryFormat', 'timeFormat') as $opt) {
-            if (isset($options) && isset($options[$opt])) {
-                $toNativeOptions[$opt] = $options[$opt];
-                unset($options[$opt]);
-            }
-        }
-
-        // Generate a token for the request
-        $token = $this->generateToken();
-
-        // Send the request
-        $globalOptargs = $this->convertOptions($options);
-        if (isset($this->defaultDb) && !isset($options['db'])) {
-            $globalOptargs['db'] = $this->defaultDb->encodeServerRequest();
-        }
-
-        $jsonQuery = array(
-            QueryQueryType::PB_START,
-            $query->encodeServerRequest(),
-            (Object)$globalOptargs
-        );
-
-        $this->sendQuery($token, $jsonQuery);
-
-        if (isset($options['noreply']) && $options['noreply'] === true) {
-            return null;
-        }
-
-        // Await the response
-        $response = $this->receiveResponse($token, $query);
-
-        if ($response['t'] == ResponseResponseType::PB_SUCCESS_PARTIAL) {
-            $this->activeTokens[$token] = true;
-        }
-
-        if (isset($response['p'])) {
-            $profile = $this->decodedJSONToDatum($response['p'])->toNative($toNativeOptions);
-        }
-
-        if ($response['t'] == ResponseResponseType::PB_SUCCESS_ATOM) {
-            return $this->createDatumFromResponse($response)->toNative($toNativeOptions);
-        } else {
-            return $this->createCursorFromResponse($response, $token, $response['n'], $toNativeOptions);
-        }
-
-    }
-
-    public function continueQuery($token)
-    {
-        if (!$this->isOpen()) {
-            throw new RqlDriverError("Not connected.");
-        }
-        if (!is_numeric($token)) {
-            throw new RqlDriverError("Token must be a number.");
-        }
-
-        // Send the request
-        $jsonQuery = array(QueryQueryType::PB_CONTINUE);
-        $this->sendQuery($token, $jsonQuery);
-
-        // Await the response
-        $response = $this->receiveResponse($token);
-
-        if ($response['t'] != ResponseResponseType::PB_SUCCESS_PARTIAL) {
-            unset($this->activeTokens[$token]);
-        }
-
-        return $response;
-    }
-
-    public function stopQuery($token)
-    {
-        if (!$this->isOpen()) {
-            throw new RqlDriverError("Not connected.");
-        }
-        if (!is_numeric($token)) {
-            throw new RqlDriverError("Token must be a number.");
-        }
-
-        // Send the request
-        $jsonQuery = array(QueryQueryType::PB_STOP);
-        $this->sendQuery($token, $jsonQuery);
-
-        // Await the response (but don't check for errors. the stop response doesn't even have a type)
-        $response = $this->receiveResponse($token, null, true);
-
-        unset($this->activeTokens[$token]);
-
-        return $response;
-    }
-
-    private function generateToken()
-    {
-        $tries = 0;
-        $maxToken = 1 << 30;
-        do {
-            $token = \rand(0, $maxToken);
-            $haveCollision = isset($this->activeTokens[$token]);
-        } while ($haveCollision && $tries++ < 1024);
-        if ($haveCollision) {
-            throw new RqlDriverError("Unable to generate a unique token for the query.");
-        }
-        return $token;
-    }
-
-    private function receiveResponse($token, $query = null, $noChecks = false)
-    {
-        $responseHeader = $this->receiveStr(4 + 8);
-        $responseHeader = unpack("Vtoken/Vtoken2/Vsize", $responseHeader);
-        $responseToken = $responseHeader['token'];
-        if ($responseHeader['token2'] != 0) {
-            throw new RqlDriverError("Invalid response from server: Invalid token.");
-        }
-        $responseSize = $responseHeader['size'];
-        $responseBuf = $this->receiveStr($responseSize);
-
-        $response = json_decode($responseBuf);
-        if (json_last_error() != JSON_ERROR_NONE) {
-            throw new RqlDriverError("Unable to decode JSON response (error code " . json_last_error() . ")");
-        }
-        if (!is_object($response)) {
-            throw new RqlDriverError("Invalid response from server: Not an object.");
-        }
-        $response = (array)$response;
-        if (!$noChecks) {
-            $this->checkResponse($response, $responseToken, $token, $query);
-        }
-
-        return $response;
-    }
-
-    private function checkResponse($response, $responseToken, $token, $query = null)
-    {
-        if (!isset($response['t'])) {
-            throw new RqlDriverError("Response message has no type.");
-        }
-
-        if ($response['t'] == ResponseResponseType::PB_CLIENT_ERROR) {
-            throw new RqlDriverError("Server says PHP-RQL is buggy: " . $response['r'][0]);
-        }
-
-        if ($responseToken != $token) {
-            throw new RqlDriverError(
-                'Received wrong token. Response does not match the request. '
-                . 'Expected ' . $token . ', received ' . $responseToken
-            );
-        }
-
-        if ($response['t'] == ResponseResponseType::PB_COMPILE_ERROR) {
-            $backtrace = null;
-            if (isset($response['b'])) {
-                $backtrace = Backtrace::decodeServerResponse($response['b']);
-            }
-            throw new RqlServerError("Compile error: " . $response['r'][0], $query, $backtrace);
-        } elseif ($response['t'] == ResponseResponseType::PB_RUNTIME_ERROR) {
-            $backtrace = null;
-            if (isset($response['b'])) {
-                $backtrace = Backtrace::decodeServerResponse($response['b']);
-            }
-            throw new RqlServerError("Runtime error: " . $response['r'][0], $query, $backtrace);
-        }
-    }
-
-    private function createCursorFromResponse($response, $token, $notes, $toNativeOptions)
-    {
-        return new Cursor($this, $response, $token, $notes, $toNativeOptions);
-    }
-
-    private function createDatumFromResponse($response)
-    {
-        return $this->decodedJSONToDatum($response['r'][0]);
-    }
-
-    private function sendQuery($token, $json)
-    {
-        // PHP by default loses some precision when encoding floats, so we temporarily
-        // bump up the `precision` option to avoid this.
-        // The 17 assumes IEEE-754 double precision numbers.
-        // Source: http://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html
-        //         "The same argument applied to double precision shows that 17 decimal
-        //          digits are required to recover a double precision number."
-        $previousPrecision = ini_set("precision", 17);
-        $request = json_encode($json);
-        if ($previousPrecision !== false) {
-            ini_set("precision", $previousPrecision);
-        }
-        if ($request === false) {
-            throw new RqlDriverError("Failed to encode query as JSON: " . json_last_error());
-        }
-
-        $requestSize = pack("V", strlen($request));
-        $binaryToken = pack("V", $token) . pack("V", 0);
-        $this->sendStr($binaryToken . $requestSize . $request);
-    }
-
-    private function applyTimeout($timeout)
+    private function applyTimeout(int|float $timeout): void
     {
         if ($this->isOpen()) {
             if (!stream_set_timeout($this->socket, $timeout)) {
@@ -431,7 +134,12 @@ class Connection extends DatumConverter
         }
     }
 
-    private function connect()
+    public function isOpen(): bool
+    {
+        return isset($this->socket);
+    }
+
+    private function connect(): void
     {
         if ($this->isOpen()) {
             throw new RqlDriverError("Already connected");
@@ -470,7 +178,7 @@ class Connection extends DatumConverter
             }
             try {
                 $msg = $handshake->nextMessage($handshakeResponse);
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 $this->close(false);
                 throw $e;
             }
@@ -498,7 +206,80 @@ class Connection extends DatumConverter
         }
     }
 
-    private function sendStr($s)
+    public function close(bool $noreplyWait = true): void
+    {
+        if (!$this->isOpen()) {
+            throw new RqlDriverError("Not connected.");
+        }
+
+        if ($noreplyWait) {
+            $this->noreplyWait();
+        }
+
+        fclose($this->socket);
+        $this->socket = null;
+        $this->activeTokens = null;
+    }
+
+    public function noreplyWait(): void
+    {
+        if (!$this->isOpen()) {
+            throw new RqlDriverError("Not connected.");
+        }
+
+        // Generate a token for the request
+        $token = $this->generateToken();
+
+        // Send the request
+        $jsonQuery = [QueryQueryType::PB_NOREPLY_WAIT->value];
+        $this->sendQuery($token, $jsonQuery);
+
+        // Await the response
+        $response = $this->receiveResponse($token);
+        $type = ResponseResponseType::tryFrom($response['t']);
+
+        if ($type !== ResponseResponseType::PB_WAIT_COMPLETE) {
+            throw new RqlDriverError("Unexpected response type to noreplyWait query.");
+        }
+    }
+
+    private function generateToken(): int
+    {
+        $tries = 0;
+        $maxToken = 1 << 30;
+        do {
+            $token = \rand(0, $maxToken);
+            $haveCollision = isset($this->activeTokens[$token]);
+        } while ($haveCollision && $tries++ < 1024);
+        if ($haveCollision) {
+            throw new RqlDriverError("Unable to generate a unique token for the query.");
+        }
+        return $token;
+    }
+
+    private function sendQuery(int $token, mixed $json): void
+    {
+        // PHP by default loses some precision when encoding floats, so we temporarily
+        // bump up the `precision` option to avoid this.
+        // The 17 assumes IEEE-754 double precision numbers.
+        // Source: http://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html
+        //         "The same argument applied to double precision shows that 17 decimal
+        //          digits are required to recover a double precision number."
+        $previousPrecision = ini_set("precision", 17);
+        $request = json_encode($json);
+        if ($previousPrecision !== false) {
+            ini_set("precision", $previousPrecision);
+        }
+        if ($request === false) {
+            throw new RqlDriverError("Failed to encode query as JSON: " . json_last_error());
+        }
+
+        $requestSize = pack("V", strlen($request));
+        $binaryToken = pack("V", $token) . pack("V", 0);
+        $this->sendStr($binaryToken . $requestSize . $request);
+    }
+
+    private function sendStr(string $s): void
     {
         $bytesWritten = 0;
         while ($bytesWritten < strlen($s)) {
@@ -519,7 +300,33 @@ class Connection extends DatumConverter
         }
     }
 
-    private function receiveStr($length)
+    private function receiveResponse(int $token, Query $query = null, bool $noChecks = false): array
+    {
+        $responseHeader = $this->receiveStr(4 + 8);
+        $responseHeader = unpack("Vtoken/Vtoken2/Vsize", $responseHeader);
+        $responseToken = $responseHeader['token'];
+        if ($responseHeader['token2'] != 0) {
+            throw new RqlDriverError("Invalid response from server: Invalid token.");
+        }
+        $responseSize = $responseHeader['size'];
+        $responseBuf = $this->receiveStr($responseSize);
+
+        $response = json_decode($responseBuf);
+        if (json_last_error() != JSON_ERROR_NONE) {
+            throw new RqlDriverError("Unable to decode JSON response (error code " . json_last_error() . ")");
+        }
+        if (!is_object($response)) {
+            throw new RqlDriverError("Invalid response from server: Not an object.");
+        }
+        $response = (array)$response;
+        if (!$noChecks) {
+            $this->checkResponse($response, $responseToken, $token, $query);
+        }
+
+        return $response;
+    }
+
+    private function receiveStr(int $length): string
     {
         $s = "";
         while (strlen($s) < $length) {
@@ -541,13 +348,193 @@ class Connection extends DatumConverter
         return $s;
     }
 
-    private function convertOptions($options)
+    private function checkResponse(array $response, int $responseToken, int $token, Query $query = null)
     {
-        $opts = array();
+        if (!isset($response['t'])) {
+            throw new RqlDriverError("Response message has no type.");
+        }
+        $type = ResponseResponseType::tryFrom($response['t']);
+
+        if ($type === ResponseResponseType::PB_CLIENT_ERROR) {
+            throw new RqlDriverError("Server says PHP-RQL is buggy: " . $response['r'][0]);
+        }
+
+        if ($responseToken != $token) {
+            throw new RqlDriverError(
+                'Received wrong token. Response does not match the request. '
+                . 'Expected ' . $token . ', received ' . $responseToken
+            );
+        }
+
+        if ($type === ResponseResponseType::PB_COMPILE_ERROR) {
+            $backtrace = null;
+            if (isset($response['b'])) {
+                $backtrace = Backtrace::decodeServerResponse($response['b']);
+            }
+            throw new RqlServerError("Compile error: " . $response['r'][0], $query, $backtrace);
+        } elseif ($type === ResponseResponseType::PB_RUNTIME_ERROR) {
+            $backtrace = null;
+            if (isset($response['b'])) {
+                $backtrace = Backtrace::decodeServerResponse($response['b']);
+            }
+            throw new RqlServerError("Runtime error: " . $response['r'][0], $query, $backtrace);
+        }
+    }
+
+    public function __destruct()
+    {
+        if ($this->isOpen()) {
+            $this->close(false);
+        }
+    }
+
+    public function reconnect(bool $noreplyWait = true): void
+    {
+        if ($this->isOpen()) {
+            $this->close($noreplyWait);
+        }
+        $this->connect();
+    }
+
+    public function server(): array|string
+    {
+        if (!$this->isOpen()) {
+            throw new RqlDriverError("Not connected.");
+        }
+
+        // Generate a token for the request
+        $token = $this->generateToken();
+
+        // Send the request
+        $jsonQuery = [QueryQueryType::PB_SERVER_INFO->value];
+        $this->sendQuery($token, $jsonQuery);
+
+        // Await the response
+        $response = $this->receiveResponse($token);
+        $type = ResponseResponseType::tryFrom($response['t']);
+
+        if ($type != ResponseResponseType::PB_SERVER_INFO) {
+            throw new RqlDriverError("Unexpected response type to server info query.");
+        }
+
+        $toNativeOptions = array();
+        return $this->createDatumFromResponse($response)->toNative($toNativeOptions);
+    }
+
+    private function createDatumFromResponse($response
+    ): Datum\ObjectDatum|Datum\StringDatum|Datum\BoolDatum|Datum\NumberDatum|Datum\NullDatum|Datum\ArrayDatum {
+        return $this->decodedJSONToDatum($response['r'][0]);
+    }
+
+    public function run(
+        Query $query,
+        array|null $options = [],
+        string|null &$profile = ''
+    ): Cursor|array|string|null|\DateTimeInterface|float|int|bool {
+        if (!$this->isOpen()) {
+            throw new RqlDriverError("Not connected.");
+        }
+
+        // Grab PHP-RQL specific options
+        $toNativeOptions = array();
+        foreach (array('binaryFormat', 'timeFormat') as $opt) {
+            if (isset($options) && isset($options[$opt])) {
+                $toNativeOptions[$opt] = $options[$opt];
+                unset($options[$opt]);
+            }
+        }
+
+        // Generate a token for the request
+        $token = $this->generateToken();
+
+        // Send the request
+        $globalOptargs = $this->convertOptions($options);
+        if (isset($this->defaultDb) && !isset($options['db'])) {
+            $globalOptargs['db'] = $this->defaultDb->encodeServerRequest();
+        }
+
+        $jsonQuery = [
+            QueryQueryType::PB_START->value,
+            $query->encodeServerRequest(),
+            (object)$globalOptargs
+        ];
+
+        $this->sendQuery($token, $jsonQuery);
+
+        if (isset($options['noreply']) && $options['noreply'] === true) {
+            return null;
+        }
+
+        // Await the response
+        $response = $this->receiveResponse($token, $query);
+        $type = ResponseResponseType::tryFrom($response['t']);
+
+        if ($type === ResponseResponseType::PB_SUCCESS_PARTIAL) {
+            $this->activeTokens[$token] = true;
+        }
+
+        if (isset($response['p'])) {
+            $profile = $this->decodedJSONToDatum($response['p'])->toNative($toNativeOptions);
+        }
+
+        if ($type === ResponseResponseType::PB_SUCCESS_ATOM) {
+            return $this->createDatumFromResponse($response)->toNative($toNativeOptions);
+        } else {
+            return $this->createCursorFromResponse($response, $token, $response['n'], $toNativeOptions);
+        }
+    }
+
+    private function convertOptions(array|object|null $options): array
+    {
+        $opts = [];
 
         foreach ((array)$options as $key => $value) {
             $opts[$key] = $this->nativeToDatum($value)->encodeServerRequest();
         }
         return $opts;
+    }
+
+    private function createCursorFromResponse($response, $token, $notes, $toNativeOptions): Cursor
+    {
+        return new Cursor($this, $response, $token, $notes, $toNativeOptions);
+    }
+
+    public function continueQuery(int $token): array
+    {
+        if (!$this->isOpen()) {
+            throw new RqlDriverError("Not connected.");
+        }
+
+        // Send the request
+        $jsonQuery = [QueryQueryType::PB_CONTINUE->value];
+        $this->sendQuery($token, $jsonQuery);
+
+        // Await the response
+        $response = $this->receiveResponse($token);
+        $type = ResponseResponseType::tryFrom($response['t']);
+
+        if ($type != ResponseResponseType::PB_SUCCESS_PARTIAL) {
+            unset($this->activeTokens[$token]);
+        }
+
+        return $response;
+    }
+
+    public function stopQuery(int $token): array
+    {
+        if (!$this->isOpen()) {
+            throw new RqlDriverError("Not connected.");
+        }
+
+        // Send the request
+        $jsonQuery = [QueryQueryType::PB_STOP->value];
+        $this->sendQuery($token, $jsonQuery);
+
+        // Await the response (but don't check for errors. the stop response doesn't even have a type)
+        $response = $this->receiveResponse($token, null, true);
+
+        unset($this->activeTokens[$token]);
+
+        return $response;
     }
 }

@@ -2,20 +2,20 @@
 
 namespace r\Queries\Control;
 
-use r\ValuedQuery\ValuedQuery;
-use r\ProtocolBuffer\TermTermType;
 use r\Datum\NumberDatum;
 use r\Datum\StringDatum;
 use r\FunctionQuery\FunctionQuery;
+use r\ProtocolBuffer\TermTermType;
+use r\Query;
 
 class Js extends FunctionQuery
 {
-    public function __construct($code, $timeout = null)
+    public function __construct(string|Query $code, int|null|float $timeout = null)
     {
         if (isset($timeout)) {
             $timeout = new NumberDatum($timeout);
         }
-        if (!(is_object($code) && is_subclass_of($code, '\r\Query'))) {
+        if (!(is_object($code) && is_subclass_of($code, Query::class))) {
             $code = new StringDatum($code);
         }
 
@@ -25,7 +25,7 @@ class Js extends FunctionQuery
         }
     }
 
-    protected function getTermType()
+    protected function getTermType(): TermTermType
     {
         return TermTermType::PB_JAVASCRIPT;
     }

@@ -13,7 +13,7 @@ class Point extends ValuedQuery
         $this->setPositionalArg(1, $this->nativeToDatum($lon));
     }
 
-    protected function getTermType()
+    protected function getTermType(): TermTermType
     {
         return TermTermType::PB_POINT;
     }

@@ -2,6 +2,7 @@
 
 namespace r\Queries\Math;
 
+use r\ProtocolBuffer\TermTermType;
 use r\ValuedQuery\ValuedQuery;
 
 class BinaryOp extends ValuedQuery
@@ -14,7 +15,7 @@ class BinaryOp extends ValuedQuery
         $this->setPositionalArg(1, $this->nativeToDatum($other));
     }
 
-    protected function getTermType()
+    protected function getTermType(): TermTermType
     {
         return $this->termType;
     }

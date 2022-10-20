@@ -13,7 +13,7 @@ class Rebalance extends ValuedQuery
         $this->setPositionalArg(0, $tables);
     }
 
-    protected function getTermType()
+    protected function getTermType(): TermTermType
     {
         return TermTermType::PB_REBALANCE;
     }

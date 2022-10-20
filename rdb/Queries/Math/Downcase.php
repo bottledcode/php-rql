@@ -12,7 +12,7 @@ class Downcase extends ValuedQuery
         $this->setPositionalArg(0, $value);
     }
 
-    protected function getTermType()
+    protected function getTermType(): TermTermType
     {
         return TermTermType::PB_DOWNCASE;
     }

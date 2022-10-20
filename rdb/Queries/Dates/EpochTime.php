@@ -14,7 +14,7 @@ class EpochTime extends ValuedQuery
         $this->setPositionalArg(0, $epochTime);
     }
 
-    protected function getTermType()
+    protected function getTermType(): TermTermType
     {
         return TermTermType::PB_EPOCH_TIME;
     }

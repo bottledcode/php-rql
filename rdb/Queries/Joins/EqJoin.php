@@ -24,7 +24,7 @@ class EqJoin extends ValuedQuery
         }
     }
 
-    protected function getTermType()
+    protected function getTermType(): TermTermType
     {
         return TermTermType::PB_EQ_JOIN;
     }

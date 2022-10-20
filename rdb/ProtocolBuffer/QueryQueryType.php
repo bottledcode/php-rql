@@ -2,11 +2,11 @@
 
 namespace r\ProtocolBuffer;
 
-class QueryQueryType
+enum QueryQueryType: int
 {
-    const PB_CONTINUE      = 2;
-    const PB_NOREPLY_WAIT  = 4;
-    const PB_SERVER_INFO   = 5;
-    const PB_START         = 1;
-    const PB_STOP          = 3;
+    case PB_CONTINUE = 2;
+    case PB_NOREPLY_WAIT = 4;
+    case PB_SERVER_INFO = 5;
+    case PB_START = 1;
+    case PB_STOP = 3;
 }

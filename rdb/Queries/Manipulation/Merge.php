@@ -15,7 +15,7 @@ class Merge extends ValuedQuery
         $this->setPositionalArg(1, $other);
     }
 
-    protected function getTermType()
+    protected function getTermType(): TermTermType
     {
         return TermTermType::PB_MERGE;
     }

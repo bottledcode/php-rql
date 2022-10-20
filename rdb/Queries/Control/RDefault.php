@@ -16,7 +16,7 @@ class RDefault extends ValuedQuery
         $this->setPositionalArg(1, $defaultCase);
     }
 
-    protected function getTermType()
+    protected function getTermType(): TermTermType
     {
         return TermTermType::PB_DEFAULT;
     }

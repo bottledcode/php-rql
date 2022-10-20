@@ -7,7 +7,7 @@ use r\ProtocolBuffer\TermTermType;
 
 class Contains extends ValuedQuery
 {
-    public function __construct(ValuedQuery $sequence, $value)
+    public function __construct(ValuedQuery $sequence, mixed $value)
     {
         $value = $this->nativeToDatumOrFunction($value);
 
@@ -15,7 +15,7 @@ class Contains extends ValuedQuery
         $this->setPositionalArg(1, $value);
     }
 
-    protected function getTermType()
+    protected function getTermType(): TermTermType
     {
         return TermTermType::PB_CONTAINS;
     }

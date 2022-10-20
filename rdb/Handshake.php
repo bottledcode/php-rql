@@ -8,22 +8,22 @@ use r\Exceptions\RqlDriverError;
 
 class Handshake
 {
-    private $username;
-    private $password;
+    private string $username;
+    private string $password;
     private $protocol_version = 0;
-    private $state;
-    private $myR;
+    private int $state;
+    private string $myR;
     private $clientFirstMessage;
     private $serverSignature;
 
-    public function __construct($username, $password)
+    public function __construct(string $username, string $password)
     {
         $this->username = str_replace(",", "=2C", str_replace("=", "=3D", $username));
         $this->password = $password;
         $this->state = 0;
     }
 
-    public function nextMessage($response)
+    public function nextMessage(string|null $response): string|null
     {
         if ($this->state == 0) {
             $response == null or die("Illegal handshake state");
@@ -31,7 +31,7 @@ class Handshake
             $this->myR = base64_encode(openssl_random_pseudo_bytes(18));
             $this->clientFirstMessage = "n=" . $this->username . ",r=" . $this->myR;
 
-            $binaryVersion = pack("V", VersionDummyVersion::PB_V1_0); // "V" is little endian, 32 bit unsigned integer
+            $binaryVersion = pack("V", VersionDummyVersion::PB_V1_0->value); // "V" is little endian, 32 bit unsigned integer
 
             $this->state = 1;
             return
@@ -131,7 +131,7 @@ class Handshake
         }
     }
 
-    private function pkbdf2Hmac($password, $salt, $iterations)
+    private function pkbdf2Hmac(string $password, string $salt, int $iterations): string
     {
         $t = hash_hmac("sha256", $salt . "\x00\x00\x00\x01", $password, true);
         $u = $t;

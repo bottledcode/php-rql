@@ -12,7 +12,7 @@ class Day extends ValuedQuery
         $this->setPositionalArg(0, $time);
     }
 
-    protected function getTermType()
+    protected function getTermType(): TermTermType
     {
         return TermTermType::PB_DAY;
     }

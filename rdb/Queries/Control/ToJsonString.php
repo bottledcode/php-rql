@@ -12,7 +12,7 @@ class ToJsonString extends ValuedQuery
         $this->setPositionalArg(0, $val);
     }
 
-    protected function getTermType()
+    protected function getTermType(): TermTermType
     {
         return TermTermType::PB_TO_JSON_STRING;
     }

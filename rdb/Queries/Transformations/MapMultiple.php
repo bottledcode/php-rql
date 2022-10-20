@@ -22,7 +22,7 @@ class MapMultiple extends ValuedQuery
         $this->setPositionalArg($i, $mappingFunction);
     }
 
-    protected function getTermType()
+    protected function getTermType(): TermTermType
     {
         return TermTermType::PB_MAP;
     }

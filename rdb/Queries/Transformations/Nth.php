@@ -15,7 +15,7 @@ class Nth extends ValuedQuery
         $this->setPositionalArg(1, $index);
     }
 
-    protected function getTermType()
+    protected function getTermType(): TermTermType
     {
         return TermTermType::PB_NTH;
     }

@@ -18,7 +18,7 @@ class Branch extends ValuedQuery
         $this->setPositionalArg(2, $falseBranch);
     }
 
-    protected function getTermType()
+    protected function getTermType(): TermTermType
     {
         return TermTermType::PB_BRANCH;
     }

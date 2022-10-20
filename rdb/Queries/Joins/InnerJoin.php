@@ -15,7 +15,7 @@ class InnerJoin extends ValuedQuery
         $this->setPositionalArg(2, $predicate);
     }
 
-    protected function getTermType()
+    protected function getTermType(): TermTermType
     {
         return TermTermType::PB_INNER_JOIN;
     }

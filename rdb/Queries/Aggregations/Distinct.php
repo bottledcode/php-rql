@@ -7,7 +7,7 @@ use r\ProtocolBuffer\TermTermType;
 
 class Distinct extends ValuedQuery
 {
-    public function __construct(ValuedQuery $sequence, $opts = null)
+    public function __construct(ValuedQuery $sequence, array $opts = null)
     {
         $this->setPositionalArg(0, $sequence);
         if (isset($opts)) {
@@ -17,7 +17,7 @@ class Distinct extends ValuedQuery
         }
     }
 
-    protected function getTermType()
+    protected function getTermType(): TermTermType
     {
         return TermTermType::PB_DISTINCT;
     }

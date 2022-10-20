@@ -4,18 +4,22 @@ namespace r;
 
 class Backtrace
 {
-    public static function decodeServerResponse($backtrace)
+    private array $frames = [];
+
+    public static function decodeServerResponse(mixed $backtrace): Backtrace
     {
         $result = new Backtrace();
-        $result->frames = array();
+        $result->frames = [];
         foreach ($backtrace as $frame) {
             $result->frames[] = Frame::decodeServerResponse($frame);
         }
         return $result;
     }
 
-    // Returns true if no more frames are available
-    public function consumeFrame()
+    /**
+     * Returns true if no more frames are available
+     */
+    public function consumeFrame(): bool
     {
         if (\count($this->frames) == 0) {
             return false;
@@ -24,6 +28,4 @@ class Backtrace
         $this->frames = array_slice($this->frames, 1);
         return $frame;
     }
-
-    private $frames = null;
 }

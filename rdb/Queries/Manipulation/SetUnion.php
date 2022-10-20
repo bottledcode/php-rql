@@ -15,7 +15,7 @@ class SetUnion extends ValuedQuery
         $this->setPositionalArg(1, $value);
     }
 
-    protected function getTermType()
+    protected function getTermType(): TermTermType
     {
         return TermTermType::PB_SET_UNION;
     }

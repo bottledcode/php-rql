@@ -3,20 +3,12 @@
 namespace r\Datum;
 
 use r\DatumConverter;
-use r\Datum\Datum;
-use r\ValuedQuery\MakeArray;
-use r\Datum\ArrayDatum;
 use r\Exceptions\RqlDriverError;
+use r\ValuedQuery\MakeArray;
 
 class ArrayDatum extends Datum
 {
-    public function encodeServerRequest()
-    {
-        $term = new MakeArray(array_values($this->getValue()));
-        return $term->encodeServerRequest();
-    }
-
-    public static function decodeServerResponse($json)
+    public static function decodeServerResponse(mixed $json): ArrayDatum
     {
         $jsonArray = array_values((array)$json);
         foreach ($jsonArray as &$val) {
@@ -28,7 +20,7 @@ class ArrayDatum extends Datum
         return $result;
     }
 
-    public function setValue($val)
+    public function setValue(array|object|string|null|float|bool|int $val): void
     {
         if (!is_array($val)) {
             throw new RqlDriverError("Not an array: " . $val);
@@ -41,7 +33,13 @@ class ArrayDatum extends Datum
         parent::setValue($val);
     }
 
-    public function toNative($opts)
+    public function encodeServerRequest(): array
+    {
+        $term = new MakeArray(array_values($this->getValue()));
+        return $term->encodeServerRequest();
+    }
+
+    public function toNative(array $opts): array
     {
         $native = array();
         foreach ($this->getValue() as $val) {
@@ -50,7 +48,7 @@ class ArrayDatum extends Datum
         return $native;
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         $string = 'array(';
         $first = true;

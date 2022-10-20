@@ -13,7 +13,7 @@ class Intersects extends ValuedQuery
         $this->setPositionalArg(1, $this->nativeToDatum($g2));
     }
 
-    protected function getTermType()
+    protected function getTermType(): TermTermType
     {
         return TermTermType::PB_INTERSECTS;
     }

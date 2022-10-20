@@ -12,7 +12,7 @@ class GeoJSON extends ValuedQuery
         $this->setPositionalArg(0, $this->nativeToDatum($geojson));
     }
 
-    protected function getTermType()
+    protected function getTermType(): TermTermType
     {
         return TermTermType::PB_GEOJSON;
     }

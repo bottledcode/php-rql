@@ -22,7 +22,7 @@ class TableDrop extends ValuedQuery
         $this->setPositionalArg($i++, $tableName);
     }
 
-    protected function getTermType()
+    protected function getTermType(): TermTermType
     {
         return TermTermType::PB_TABLE_DROP;
     }

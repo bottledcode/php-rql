@@ -8,7 +8,7 @@ use r\Exceptions\RqlDriverError;
 
 class ObjectDatum extends Datum
 {
-    public function encodeServerRequest()
+    public function encodeServerRequest(): object
     {
         $jsonValue = $this->getValue();
         foreach ($jsonValue as $key => &$val) {
@@ -18,7 +18,7 @@ class ObjectDatum extends Datum
         return (Object)$jsonValue;
     }
 
-    public static function decodeServerResponse($json)
+    public static function decodeServerResponse(mixed $json): ObjectDatum
     {
         $jsonObject = (array)$json;
         foreach ($jsonObject as $key => &$val) {
@@ -30,7 +30,7 @@ class ObjectDatum extends Datum
         return $result;
     }
 
-    public function setValue($val)
+    public function setValue(array|string|object|null|float|bool|int $val): void
     {
         if (!is_array($val)) {
             throw new RqlDriverError("Not an array: " . $val);
@@ -46,9 +46,9 @@ class ObjectDatum extends Datum
         parent::setValue($val);
     }
 
-    public function toNative($opts)
+    public function toNative(array $opts): array|string|object|null|float|bool|int
     {
-        $native = new \ArrayObject();
+        $native = [];
         foreach ($this->getValue() as $key => $val) {
             $native[$key] = $val->toNative($opts);
         }
@@ -94,7 +94,7 @@ class ObjectDatum extends Datum
         return $native;
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         // Handle BINARY pseudo-type
         $val = $this->getValue();

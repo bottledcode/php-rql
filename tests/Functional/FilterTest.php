@@ -2,6 +2,7 @@
 
 namespace r\Tests\Functional;
 
+use r\Exceptions\RqlServerError;
 use r\Tests\TestCase;
 
 // use function \r\row;
@@ -10,14 +11,14 @@ use r\Tests\TestCase;
 
 class FilterTest extends TestCase
 {
-    public function setUp()
+    public function setUp(): void
     {
         $this->conn = $this->getConnection();
         $this->data = $this->useDataset('Heroes');
         $this->data->populate();
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         $this->data->truncate();
     }
@@ -56,8 +57,8 @@ class FilterTest extends TestCase
 
     public function testFilterError()
     {
-        $this->setExpectedException(
-            '\r\Exceptions\RqlServerError',
+        $this->expectException(RqlServerError::class);
+        $this->expectExceptionMessage(
             'Runtime error: No attribute `foo` in object:'
         );
 
@@ -69,8 +70,8 @@ class FilterTest extends TestCase
 
     public function testFilterErrorMsg()
     {
-        $this->setExpectedException(
-            '\r\Exceptions\RqlServerError',
+        $this->expectException(RqlServerError::class);
+        $this->expectExceptionMessage(
             'msg'
         );
 

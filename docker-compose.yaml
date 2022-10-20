@@ -1,0 +1,8 @@
+version: '2.8'
+services:
+  rethinkdb:
+    image: rethinkdb:latest
+    ports:
+      - 8080:8080
+      - 28015:28015
+      - 29015:29015

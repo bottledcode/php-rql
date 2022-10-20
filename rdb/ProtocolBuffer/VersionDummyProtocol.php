@@ -2,8 +2,8 @@
 
 namespace r\ProtocolBuffer;
 
-class VersionDummyProtocol
+enum VersionDummyProtocol: int
 {
-    const PB_JSON      = 0x7e6970c7;
-    const PB_PROTOBUF  = 0x271ffc41;
+    case PB_JSON = 0x7e6970c7;
+    case PB_PROTOBUF = 0x271ffc41;
 }

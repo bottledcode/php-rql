@@ -13,7 +13,7 @@ class Sync extends ValuedQuery
         $this->setPositionalArg(0, $table);
     }
 
-    protected function getTermType()
+    protected function getTermType(): TermTermType
     {
         return TermTermType::PB_SYNC;
     }

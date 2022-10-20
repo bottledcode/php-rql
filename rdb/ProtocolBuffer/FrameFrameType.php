@@ -2,8 +2,8 @@
 
 namespace r\ProtocolBuffer;
 
-class FrameFrameType
+enum FrameFrameType: int
 {
-    const PB_OPT  = 2;
-    const PB_POS  = 1;
+    case PB_OPT  = 2;
+    case PB_POS  = 1;
 }

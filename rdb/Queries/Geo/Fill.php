@@ -12,7 +12,7 @@ class Fill extends ValuedQuery
         $this->setPositionalArg(0, $this->nativeToDatum($g1));
     }
 
-    protected function getTermType()
+    protected function getTermType(): TermTermType
     {
         return TermTermType::PB_FILL;
     }

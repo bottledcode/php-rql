@@ -15,7 +15,7 @@ class Reduce extends ValuedQuery
         $this->setPositionalArg(1, $reductionFunction);
     }
 
-    protected function getTermType()
+    protected function getTermType(): TermTermType
     {
         return TermTermType::PB_REDUCE;
     }

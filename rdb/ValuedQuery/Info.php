@@ -13,7 +13,7 @@ class Info extends ValuedQuery
         $this->setPositionalArg(0, $onQuery);
     }
 
-    protected function getTermType()
+    protected function getTermType(): TermTermType
     {
         return TermTermType::PB_INFO;
     }

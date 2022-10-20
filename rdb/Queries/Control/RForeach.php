@@ -14,7 +14,7 @@ class RForeach extends ValuedQuery
         $this->setPositionalArg(1, $queryFunction);
     }
 
-    protected function getTermType()
+    protected function getTermType(): TermTermType
     {
         return TermTermType::PB_FOR_EACH;
     }

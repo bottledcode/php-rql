@@ -12,7 +12,7 @@ class Ceil extends ValuedQuery
         $this->setPositionalArg(0, $this->nativeToDatum($value));
     }
 
-    protected function getTermType()
+    protected function getTermType(): TermTermType
     {
         return TermTermType::PB_CEIL;
     }

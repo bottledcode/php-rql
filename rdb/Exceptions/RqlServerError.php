@@ -2,8 +2,6 @@
 
 namespace r\Exceptions;
 
-use r\Exceptions\RqlException;
-
 class RqlServerError extends RqlException
 {
 
@@ -17,12 +15,12 @@ class RqlServerError extends RqlException
         parent::__construct($message, $code);
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         return "RqlServerError:\n  " . $this->getMessage() . "\n" . $this->getBacktraceString();
     }
 
-    public function getBacktraceString()
+    public function getBacktraceString(): string
     {
         $result = "";
         if (isset($this->query)) {

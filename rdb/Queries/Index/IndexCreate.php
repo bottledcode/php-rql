@@ -42,7 +42,7 @@ class IndexCreate extends ValuedQuery
         }
     }
 
-    protected function getTermType()
+    protected function getTermType(): TermTermType
     {
         return TermTermType::PB_INDEX_CREATE;
     }

@@ -17,7 +17,7 @@ class Bracket extends ValuedQuery
         $this->setPositionalArg(1, $attributeOrIndex);
     }
 
-    protected function getTermType()
+    protected function getTermType(): TermTermType
     {
         return TermTermType::PB_BRACKET;
     }

@@ -8,18 +8,15 @@ use r\ProtocolBuffer\TermTermType;
 
 class MakeArray extends ValuedQuery
 {
-    public function __construct($value)
+    public function __construct(array $value)
     {
-        if (!is_array($value)) {
-            throw new RqlDriverError("Value must be an array.");
-        }
         $i = 0;
         foreach ($value as $val) {
             $this->setPositionalArg($i++, $val);
         }
     }
 
-    protected function getTermType()
+    protected function getTermType(): TermTermType
     {
         return TermTermType::PB_MAKE_ARRAY;
     }

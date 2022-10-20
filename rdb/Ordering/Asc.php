@@ -13,7 +13,7 @@ class Asc extends Ordering
         $this->setPositionalArg(0, $attribute);
     }
 
-    protected function getTermType()
+    protected function getTermType(): TermTermType
     {
         return TermTermType::PB_ASC;
     }

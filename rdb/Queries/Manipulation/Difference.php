@@ -15,7 +15,7 @@ class Difference extends ValuedQuery
         $this->setPositionalArg(1, $value);
     }
 
-    protected function getTermType()
+    protected function getTermType(): TermTermType
     {
         return TermTermType::PB_DIFFERENCE;
     }

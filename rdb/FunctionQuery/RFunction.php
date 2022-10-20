@@ -28,13 +28,13 @@ class RFunction extends FunctionQuery
         $this->setPositionalArg(1, $top);
     }
 
-    public function hasUnwrappedImplicitVar()
+    public function hasUnwrappedImplicitVar(): bool
     {
         // A function wraps implicit variables
         return false;
     }
 
-    protected function getTermType()
+    protected function getTermType(): TermTermType
     {
         return TermTermType::PB_FUNC;
     }

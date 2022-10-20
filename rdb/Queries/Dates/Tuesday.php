@@ -7,7 +7,7 @@ use r\ProtocolBuffer\TermTermType;
 
 class Tuesday extends ValuedQuery
 {
-    protected function getTermType()
+    protected function getTermType(): TermTermType
     {
         return TermTermType::PB_TUESDAY;
     }

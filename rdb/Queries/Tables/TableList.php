@@ -18,7 +18,7 @@ class TableList extends ValuedQuery
         }
     }
 
-    protected function getTermType()
+    protected function getTermType(): TermTermType
     {
         return TermTermType::PB_TABLE_LIST;
     }

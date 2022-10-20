@@ -2,8 +2,6 @@
 
 namespace r\Exceptions;
 
-use r\Exceptions\RqlException;
-
 class RqlDriverError extends RqlException
 {
     public function __construct($message, $code = 0)

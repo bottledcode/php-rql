@@ -12,7 +12,7 @@ class Ungroup extends ValuedQuery
         $this->setPositionalArg(0, $sequence);
     }
 
-    protected function getTermType()
+    protected function getTermType(): TermTermType
     {
         return TermTermType::PB_UNGROUP;
     }

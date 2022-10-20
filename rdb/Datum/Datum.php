@@ -8,7 +8,7 @@ use r\Exceptions\RqlDriverError;
 
 abstract class Datum extends ValuedQuery
 {
-    private $value;
+    private mixed $value;
 
     public function __construct($value = null)
     {
@@ -17,22 +17,22 @@ abstract class Datum extends ValuedQuery
         }
     }
 
-    protected function getTermType()
+    protected function getTermType(): TermTermType
     {
         return TermTermType::PB_DATUM;
     }
 
-    public function toNative($opts)
+    public function toNative(array $opts): array|string|object|null|float|bool|int
     {
         return $this->getValue();
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         return "" . $this->getValue();
     }
 
-    public function toString(&$backtrace)
+    public function toString(&$backtrace): string
     {
         $result = $this->__toString();
         if (is_null($backtrace)) {
@@ -52,12 +52,12 @@ abstract class Datum extends ValuedQuery
         }
     }
 
-    public function getValue()
+    public function getValue(): array|string|object|null|int|float|bool
     {
         return $this->value;
     }
 
-    public function setValue($val)
+    public function setValue(array|string|object|null|int|float|bool $val): void
     {
         $this->value = $val;
     }
