@@ -21,7 +21,7 @@ export RDB_DB
 php $BASEDIR/tests/TestHelpers/createDb.php
 
 # run tests
-$BASEDIR/vendor/bin/phpunit -c $PWD/phpunit.xml "$@"
+$BASEDIR/vendor/bin/phpunit -c $PWD/phpunit.xml --colors=always "$@"
 STATUS=$?
 
 #remove db

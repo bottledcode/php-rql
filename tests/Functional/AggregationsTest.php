@@ -2,7 +2,9 @@
 
 namespace r\Tests\Functional;
 
+use r\Datum\Datum;
 use r\Tests\TestCase;
+use r\ValuedQuery\RVar;
 
 // use function \r\expr;
 // use function \r\row;
@@ -54,13 +56,13 @@ class AggregationsTest extends TestCase
         );
 
         $res = \r\expr(array(1, 2, 2, 4))
-            ->group(function ($r) {
+            ->group(function (RVar $r) {
                 return $r;
             })
-            ->map(function ($r) {
+            ->map(function (RVar $r) {
                 return $r;
             })
-            ->reduce(function ($a, $b) {
+            ->reduce(function (RVar $a, RVar $b) {
                 return $a->add($b);
             })
             ->ungroup()
@@ -79,11 +81,11 @@ class AggregationsTest extends TestCase
 
         $res = \r\expr(
             array(
-                    array('v' => 1),
-                    array('v' => 2),
-                    array('v' => 2),
-                    array('v' => 4)
-                )
+                array('v' => 1),
+                array('v' => 2),
+                array('v' => 2),
+                array('v' => 4)
+            )
         )->group('v')
             ->count()
             ->ungroup()
@@ -102,11 +104,11 @@ class AggregationsTest extends TestCase
 
         $res = \r\expr(
             array(
-                    array('v' => 1),
-                    array('v' => 2),
-                    array('v' => 2),
-                    array('v' => 4)
-                )
+                array('v' => 1),
+                array('v' => 2),
+                array('v' => 2),
+                array('v' => 4)
+            )
         )->group('v')
             ->sum('v')
             ->ungroup()
@@ -125,11 +127,11 @@ class AggregationsTest extends TestCase
 
         $res = \r\expr(
             array(
-                    array('v' => 1),
-                    array('v' => 2),
-                    array('v' => 2),
-                    array('v' => 4)
-                )
+                array('v' => 1),
+                array('v' => 2),
+                array('v' => 2),
+                array('v' => 4)
+            )
         )->group('v')
             ->avg('v')
             ->ungroup()
@@ -150,11 +152,11 @@ class AggregationsTest extends TestCase
 
         $res = \r\expr(
             array(
-                    array('v' => 1, 'x' => 1),
-                    array('v' => 2, 'x' => 2),
-                    array('v' => 2, 'x' => 3),
-                    array('v' => 4, 'x' => 4)
-                )
+                array('v' => 1, 'x' => 1),
+                array('v' => 2, 'x' => 2),
+                array('v' => 2, 'x' => 3),
+                array('v' => 4, 'x' => 4)
+            )
         )->group(array('v', 'x'))
             ->count()
             ->ungroup()
@@ -309,6 +311,31 @@ class AggregationsTest extends TestCase
         $this->localTearDown();
     }
 
+    protected function localSetUp()
+    {
+        // require dta
+        $this->data = $this->useDataset('Heroes');
+        $this->data->populate();
+
+        // request indexes
+        $index = $this->db()->table('marvel')
+            ->indexCreate('combatPower')
+            ->run($this->conn);
+
+        // wait for index build
+        $this->db()->table('marvel')
+            ->indexWait('combatPower')
+            ->pluck(array('index', 'ready'))
+            ->run($this->conn);
+    }
+
+    protected function localTearDown()
+    {
+        $this->db()->table('marvel')->indexDrop('combatPower')->run($this->conn);
+
+        $this->data->truncate();
+    }
+
     public function testMaxIndex()
     {
         $this->localSetUp();
@@ -335,30 +362,5 @@ class AggregationsTest extends TestCase
         $this->assertEquals(2, $res);
 
         $this->localTearDown();
-    }
-
-    protected function localSetUp()
-    {
-        // require dta
-        $this->data = $this->useDataset('Heroes');
-        $this->data->populate();
-
-        // request indexes
-        $index = $this->db()->table('marvel')
-            ->indexCreate('combatPower')
-            ->run($this->conn);
-
-        // wait for index build
-        $this->db()->table('marvel')
-            ->indexWait('combatPower')
-            ->pluck(array('index', 'ready'))
-            ->run($this->conn);
-    }
-
-    protected function localTearDown()
-    {
-        $this->db()->table('marvel')->indexDrop('combatPower')->run($this->conn);
-
-        $this->data->truncate();
     }
 }

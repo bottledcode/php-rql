@@ -99,10 +99,10 @@ class DatumConverter
 
     public function nativeToDatumOrFunction(mixed $f, bool $wrapImplicit = true): mixed
     {
-        if (!(is_object($f) && is_subclass_of($f, '\r\Query'))) {
+        if (!(is_object($f) && is_subclass_of($f, Query::class))) {
             try {
                 $f = $this->nativeToDatum($f);
-                if (!is_subclass_of($f, '\r\Datum\Datum')) {
+                if (!is_subclass_of($f, Datum::class)) {
                     // $f is not a simple datum. Wrap it into a function:
                     $f = new RFunction(array(new RVar('_')), $f);
                 }
