@@ -91,13 +91,9 @@ use r\ValuedQuery\RObject;
 // ------------- Global functions in namespace r -------------
 
 function connect(
-    array|string|null $optsOrHost = null,
-    int|null $port = null,
-    string|null $db = null,
-    string|null $apiKey = null,
-    int|float|null $timeout = null
+    ConnectionOptions $connectionOptions
 ): Connection {
-    return new Connection($optsOrHost, $port, $db, $apiKey, $timeout);
+    return new Connection($connectionOptions);
 }
 
 function db(string $dbName): Db

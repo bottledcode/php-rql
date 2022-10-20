@@ -2,6 +2,10 @@
 
 namespace r\Tests;
 
+use r\ConnectionOptions;
+
+use function r\connect;
+
 class TestCase extends \PHPUnit\Framework\TestCase
 {
     protected $datasets = array();
@@ -17,7 +21,9 @@ class TestCase extends \PHPUnit\Framework\TestCase
         static $connection;
 
         if (!isset($connection)) {
-            $connection = \r\connect(getenv('RDB_HOST'), getenv('RDB_PORT'), getenv('RDB_DB'));
+            $connection = connect(
+                new ConnectionOptions(host: getenv('RDB_HOST'), port: getenv('RDB_PORT'), db: getenv('RDB_DB'))
+            );
         }
 
         return $connection;
@@ -45,7 +51,7 @@ class TestCase extends \PHPUnit\Framework\TestCase
     // test the results status
     protected function assertObStatus($status, $data)
     {
-        $statuses =  array(
+        $statuses = array(
             'unchanged',
             'skipped',
             'replaced',

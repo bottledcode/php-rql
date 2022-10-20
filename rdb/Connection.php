@@ -21,106 +21,39 @@ class Connection extends DatumConverter
     private int|null $timeout;
     private array|bool|null $ssl;
 
-    public function __construct(
-        string|array|null $optsOrHost = null,
-        int|null $port = null,
-        string|null $db = null,
-        string|null $apiKey = null,
-        int|null $timeout = null
-    ) {
-        if (is_array($optsOrHost)) {
-            $opts = $optsOrHost;
-            $host = null;
-        } else {
-            $opts = null;
-            $host = $optsOrHost;
-        }
+    public function __construct(ConnectionOptions $connectionOptions)
+    {
+        $this->host = $connectionOptions->host;
+        $this->port = $connectionOptions->port;
+        $this->user = $connectionOptions->user;
+        $this->password = $connectionOptions->password;
+        $this->timeout = $connectionOptions->timeout;
+        $this->ssl = $connectionOptions->ssl;
 
-        $ssl = null;
-        $user = null;
-        $password = null;
-
-        if (isset($opts)) {
-            if (isset($opts['host'])) {
-                $host = $opts['host'];
-            }
-            if (isset($opts['port'])) {
-                $port = $opts['port'];
-            }
-            if (isset($opts['db'])) {
-                $db = $opts['db'];
-            }
-            if (isset($opts['apiKey'])) {
-                $apiKey = $opts['apiKey'];
-            }
-            if (isset($opts['user'])) {
-                $user = $opts['user'];
-            }
-            if (isset($opts['password'])) {
-                $password = $opts['password'];
-            }
-            if (isset($opts['timeout'])) {
-                $timeout = $opts['timeout'];
-            }
-            if (isset($opts['ssl'])) {
-                $ssl = $opts['ssl'];
-            }
-        }
-
-        if (isset($apiKey) && !is_string($apiKey)) {
-            throw new RqlDriverError("The API key must be a string.");
-        }
-        if (isset($user) && !is_string($user)) {
-            throw new RqlDriverError("The user name must be a string.");
-        }
-        if (isset($password) && !is_string($password)) {
-            throw new RqlDriverError("The password must be a string.");
-        }
-
-        if (!isset($user)) {
-            $user = "admin";
-        }
-        if (isset($apiKey) && isset($password)) {
-            throw new RqlDriverError("Either user or apiKey can be specified, but not both.");
-        }
-        if (isset($apiKey) && !isset($password)) {
-            $password = $apiKey;
-        }
-        if (!isset($password)) {
-            $password = "";
-        }
-        if (!isset($host)) {
-            $host = "localhost";
-        }
-        if (!isset($port)) {
-            $port = 28015;
-        }
-
-        $this->host = $host;
-        $this->port = $port;
-        $this->user = $user;
-        $this->password = $password;
-        $this->timeout = null;
-        $this->ssl = $ssl;
-
-        if (isset($db)) {
-            $this->useDb($db);
-        }
-        if (isset($timeout)) {
-            $this->setTimeout($timeout);
-        }
+        $this->useDb($connectionOptions->db);
+        $this->setTimeout($connectionOptions->timeout);
 
         $this->connect();
     }
 
-    public function useDb(string $dbName): void
+    public function useDb(string|null $dbName): void
     {
+        if (empty($dbName)) {
+            $this->defaultDb = null;
+            $this->defaultDbName = '';
+            return;
+        }
+
         $this->defaultDbName = $dbName;
         $this->defaultDb = new Db($dbName);
     }
 
-    public function setTimeout(int|float $timeout): void
+    public function setTimeout(int|float|null $timeout): void
     {
+        if (empty($timeout)) {
+            return;
+        }
+
         $this->applyTimeout($timeout);
         $this->timeout = $timeout;
     }

@@ -2,6 +2,6 @@
 
 include __DIR__ . '../../../vendor/autoload.php';
 
-$conn = r\connect(getenv('RDB_HOST'), getenv('RDB_PORT'));
+$conn = \r\connect(new \r\ConnectionOptions(host: getenv('RDB_HOST'), port: getenv('RDB_PORT')));
 
 $res = r\dbDrop(getenv('RDB_DB'))->run($conn);
