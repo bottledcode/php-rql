@@ -2,6 +2,8 @@
 
 namespace r\Tests\Functional;
 
+use r\Options\CircleOptions;
+use r\Options\DistanceOptions;
 use r\Tests\TestCase;
 
 // use function \r\row;
@@ -41,10 +43,10 @@ class GeoTest extends TestCase
     public function testToGepJson()
     {
         $res = \r\expr(array(
-                '$reql_type$' => 'GEOMETRY',
-                'type' => 'Point',
-                'coordinates' => array(0.0, 1.0)
-            ))->toGeojson()
+            '$reql_type$' => 'GEOMETRY',
+            'type' => 'Point',
+            'coordinates' => array(0.0, 1.0)
+        ))->toGeojson()
             ->run($this->conn);
 
         $this->assertEquals(
@@ -69,7 +71,7 @@ class GeoTest extends TestCase
 
     public function testLine()
     {
-        $res = \r\line(array(array(0.0, 0.0), array(0.0, 1.0), array(1.0, 1.0)))
+        $res = \r\line([0.0, 0.0], [0.0, 1.0], [1.0, 1.0])
             ->run($this->conn);
 
         $this->assertEquals(
@@ -88,7 +90,7 @@ class GeoTest extends TestCase
 
     public function testLineFill()
     {
-        $res = \r\line(array(array(0.0, 0.0), array(0.0, 1.0), array(1.0, 1.0)))
+        $res = \r\line(array(0.0, 0.0), array(0.0, 1.0), array(1.0, 1.0))
             ->fill()
             ->run($this->conn);
 
@@ -111,7 +113,7 @@ class GeoTest extends TestCase
 
     public function testPolygon()
     {
-        $res = \r\polygon(array(array(0.0, 0.0), array(0.0, 1.0), array(1.0, 1.0)))
+        $res = \r\polygon(array(0.0, 0.0), array(0.0, 1.0), array(1.0, 1.0))
             ->run($this->conn);
 
         $this->assertEquals(
@@ -134,14 +136,12 @@ class GeoTest extends TestCase
     public function testPolygonSub()
     {
         $res = \r\polygon(
-            array(
-                    array(0.0, 0.0),
-                    array(0.0, 2.0),
-                    array(2.0, 2.0),
-                    array(2.0, 0.0)
-                )
+            array(0.0, 0.0),
+            array(0.0, 2.0),
+            array(2.0, 2.0),
+            array(2.0, 0.0)
         )->polygonSub(
-            \r\polygon(array(array(0.5, 0.5), array(0.5, 0.8), array(0.8, 0.8)))
+            \r\polygon(array(0.5, 0.5), array(0.5, 0.8), array(0.8, 0.8))
         )->run($this->conn);
 
         $this->assertEquals(
@@ -155,7 +155,8 @@ class GeoTest extends TestCase
                         array(2.0, 2.0),
                         array(2.0, 0.0),
                         array(0.0, 0.0)
-                    ), array(
+                    ),
+                    array(
                         array(0.5, 0.5),
                         array(0.5, 0.8),
                         array(0.8, 0.8),
@@ -183,7 +184,7 @@ class GeoTest extends TestCase
     {
         $res = \r\point(0.0, 1.0)->distance(
             \r\point(1.0, 1.0),
-            array('unit' => 'km')
+            new DistanceOptions(unit: 'km')
         )->coerceTo("STRING")->run($this->conn);
 
         $this->assertStringContainsString('1113026493394308', str_replace('.', '', $res));
@@ -193,13 +194,11 @@ class GeoTest extends TestCase
     {
         $this->assertTrue(
             \r\polygon(
-                array(
-                    array(0.0, 0.0),
-                    array(0.0, 1.0),
-                    array(1.0, 1.0)
-                )
+                array(0.0, 0.0),
+                array(0.0, 1.0),
+                array(1.0, 1.0)
             )->intersects(
-                \r\line(array(array(0.0, 0.0), array(2.0, 2.0)))
+                \r\line(array(0.0, 0.0), array(2.0, 2.0))
             )->run($this->conn)
         );
     }
@@ -208,13 +207,11 @@ class GeoTest extends TestCase
     {
         $this->assertFalse(
             \r\polygon(
-                array(
                     array(0.0, 0.0),
                     array(0.0, 1.0),
                     array(1.0, 1.0)
-                )
             )->includes(
-                \r\line(array(array(0.0, 0.0), array(2.0, 2.0)))
+                \r\line(array(0.0, 0.0), array(2.0, 2.0))
             )->run($this->conn)
         );
     }
@@ -224,7 +221,7 @@ class GeoTest extends TestCase
         $this->assertFalse(
             \r\circle(\r\point(0.0, 0.0), 10.0)
                 ->intersects(
-                    \r\line(array(array(0.1, 0.0), array(2.0, 2.0)))
+                    \r\line(array(0.1, 0.0), array(2.0, 2.0))
                 )->run($this->conn)
         );
     }
@@ -232,9 +229,9 @@ class GeoTest extends TestCase
     public function testCircleMi()
     {
         $this->assertTrue(
-            \r\circle(\r\point(0.0, 0.0), 10.0, array('unit' => 'mi'))
+            \r\circle(\r\point(0.0, 0.0), 10.0, new CircleOptions(unit: 'mi'))
                 ->intersects(
-                    \r\line(array(array(0.1, 0.0), array(2.0, 2.0)))
+                    \r\line(array(0.1, 0.0), array(2.0, 2.0))
                 )->run($this->conn)
         );
     }
@@ -243,7 +240,7 @@ class GeoTest extends TestCase
     {
         $res = $this->db()->table('geo')
             ->getIntersecting(
-                \r\circle(\r\point(0.0, 0.0), 150.0, array('unit' => "km")),
+                \r\circle(\r\point(0.0, 0.0), 150.0, new CircleOptions(unit: 'km')),
                 array('index' => 'geo')
             )->count()
             ->run($this->conn);
@@ -255,7 +252,7 @@ class GeoTest extends TestCase
     {
         $res = $this->db()->table('geo')
             ->getIntersecting(
-                \r\circle(\r\point(0.0, 0.0), 150.0, array('unit' => "km")),
+                \r\circle(\r\point(0.0, 0.0), 150.0, new CircleOptions(unit: 'km')),
                 array('index' => 'mgeo')
             )->count()
             ->run($this->conn);

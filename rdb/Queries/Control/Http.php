@@ -15,6 +15,9 @@ class Http extends ValuedQuery
             if ($val === null) {
                 continue;
             }
+            if($val instanceof \BackedEnum) {
+                $val = $val->value;
+            }
             $this->setOptionalArg($opt, $this->nativeToDatum($val));
         }
     }

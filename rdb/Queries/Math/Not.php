@@ -2,12 +2,13 @@
 
 namespace r\Queries\Math;
 
+use r\Query;
 use r\ValuedQuery\ValuedQuery;
 use r\ProtocolBuffer\TermTermType;
 
 class Not extends ValuedQuery
 {
-    public function __construct($value)
+    public function __construct(bool|Query $value)
     {
         $this->setPositionalArg(0, $this->nativeToDatum($value));
     }

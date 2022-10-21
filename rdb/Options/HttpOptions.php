@@ -21,7 +21,7 @@ class HttpOptions
         public readonly int|null $attempts = null,
         public readonly int|null $redirects = null,
         public readonly bool|null $verify = null,
-        public readonly HttpResultFormat|null $resultFormat = null,
+        public readonly HttpResultFormat|null $result_format = null,
         public readonly HttpMethod|null $method = null,
         public readonly array|null $auth = null,
         public readonly array|null $params = null,

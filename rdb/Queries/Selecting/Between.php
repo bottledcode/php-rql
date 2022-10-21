@@ -2,13 +2,13 @@
 
 namespace r\Queries\Selecting;
 
-use r\ValuedQuery\ValuedQuery;
-use r\Exceptions\RqlDriverError;
+use r\Options\BetweenOptions;
 use r\ProtocolBuffer\TermTermType;
+use r\ValuedQuery\ValuedQuery;
 
 class Between extends ValuedQuery
 {
-    public function __construct(ValuedQuery $selection, $leftBound, $rightBound, $opts = null)
+    public function __construct(ValuedQuery $selection, mixed $leftBound, mixed $rightBound, BetweenOptions $opts)
     {
         $leftBound = $this->nativeToDatum($leftBound);
         $rightBound = $this->nativeToDatum($rightBound);
@@ -16,13 +16,14 @@ class Between extends ValuedQuery
         $this->setPositionalArg(0, $selection);
         $this->setPositionalArg(1, $leftBound);
         $this->setPositionalArg(2, $rightBound);
-        if (isset($opts)) {
-            if (!is_array($opts)) {
-                throw new RqlDriverError("opts argument must be an array");
+        foreach ($opts as $k => $v) {
+            if ($v === null) {
+                continue;
             }
-            foreach ($opts as $k => $v) {
-                $this->setOptionalArg($k, $this->nativeToDatum($v));
+            if ($v instanceof \BackedEnum) {
+                $v = $v->value;
             }
+            $this->setOptionalArg($k, $this->nativeToDatum($v));
         }
     }
 

@@ -3,6 +3,7 @@
 namespace r\Tests\Functional;
 
 use DateTime;
+use r\Options\Iso8601Options;
 use r\Tests\TestCase;
 
 // use function \r\expr;
@@ -87,7 +88,7 @@ class DateTest extends TestCase
     {
         $this->assertEquals(
             date('c', 1),
-            \r\iso8601('1970-01-01T00:00:01+00:00', array('default_timezone' => '+00:00'))
+            \r\iso8601('1970-01-01T00:00:01+00:00', new Iso8601Options(defaultTimezone: '+00:00'))
                 ->toIso8601()->run($this->conn)
         );
     }

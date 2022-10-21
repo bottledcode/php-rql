@@ -2,12 +2,13 @@
 
 namespace r\Queries\Dates;
 
+use r\Query;
 use r\ValuedQuery\ValuedQuery;
 use r\ProtocolBuffer\TermTermType;
 
 class EpochTime extends ValuedQuery
 {
-    public function __construct($epochTime)
+    public function __construct(int|float|Query $epochTime)
     {
         $epochTime = $this->nativeToDatum($epochTime);
 

@@ -2,6 +2,7 @@
 
 namespace r\Tests\Functional;
 
+use r\Options\BetweenOptions;
 use r\Tests\TestCase;
 
 // use function \r\expr;
@@ -32,7 +33,7 @@ class BetweenTest extends TestCase
     public function testBetweenIndex()
     {
         $res = $this->db()->table('marvel')
-            ->between('5', '5', array('index' => 'test'))
+            ->between('5', '5', new BetweenOptions(index: 'test'))
             ->count()
             ->run($this->conn);
 
@@ -42,7 +43,7 @@ class BetweenTest extends TestCase
     public function testBetweenRightBoundClosed()
     {
         $res = $this->db()->table('marvel')
-            ->between('5', '5', array('index' => 'test', 'right_bound' => 'closed'))
+            ->between('5', '5', new BetweenOptions(index: 'test', right_bound: 'closed'))
             ->count()
             ->run($this->conn);
 

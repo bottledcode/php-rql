@@ -2,6 +2,8 @@
 
 namespace r\Tests\Functional;
 
+use r\Options\DeleteOptions;
+use r\Options\Durability;
 use r\Tests\TestCase;
 
 class DeleteTest extends TestCase
@@ -32,7 +34,7 @@ class DeleteTest extends TestCase
     {
         $res = $this->db()->table('marvel')
             ->get('Wolverine')
-            ->delete(array('durability' => 'soft'))
+            ->delete(new DeleteOptions(durability: Durability::Soft))
             ->run($this->conn);
 
         $this->assertObStatus(array('deleted' => 1), $res);

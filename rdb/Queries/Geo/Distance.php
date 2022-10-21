@@ -2,23 +2,22 @@
 
 namespace r\Queries\Geo;
 
-use r\ValuedQuery\ValuedQuery;
-use r\Exceptions\RqlDriverError;
+use r\Options\DistanceOptions;
 use r\ProtocolBuffer\TermTermType;
+use r\Query;
+use r\ValuedQuery\ValuedQuery;
 
 class Distance extends ValuedQuery
 {
-    public function __construct($g1, $g2, $opts = null)
+    public function __construct(Query $g1, Query $g2, DistanceOptions $opts = null)
     {
         $this->setPositionalArg(0, $this->nativeToDatum($g1));
         $this->setPositionalArg(1, $this->nativeToDatum($g2));
-        if (isset($opts)) {
-            if (!is_array($opts)) {
-                throw new RqlDriverError("opts argument must be an array");
+        foreach ($opts as $k => $v) {
+            if ($v === null) {
+                continue;
             }
-            foreach ($opts as $k => $v) {
-                $this->setOptionalArg($k, $this->nativeToDatum($v));
-            }
+            $this->setOptionalArg($k, $this->nativeToDatum($v));
         }
     }
 

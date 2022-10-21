@@ -2,8 +2,9 @@
 
 namespace r\Tests\Functional;
 
-use r\Tests\TestCase;
 use r\Datum\ArrayDatum;
+use r\Options\UnionOptions;
+use r\Tests\TestCase;
 
 // use function \r\row;
 // use function \r\Desc;
@@ -82,12 +83,14 @@ class TransformationsTest extends TestCase
     public function testOrderbyCallback()
     {
         $res = $this->db()->table('marvel')->orderBy(
-            array(function ($x) {
-                return $x('combatPower');
-
-            }, function ($x) {
-                return $x('compassionPower');
-            })
+            array(
+                function ($x) {
+                    return $x('combatPower');
+                },
+                function ($x) {
+                    return $x('compassionPower');
+                }
+            )
         )->map(
             \r\row('superhero')
         )->run($this->conn);
@@ -98,12 +101,14 @@ class TransformationsTest extends TestCase
     public function testOrderbyAscDescCallback()
     {
         $res = $this->db()->table('marvel')->orderBy(
-            array(\r\Asc(function ($x) {
-                return $x('combatPower');
-
-            }), \r\Desc(function ($x) {
-                return $x('compassionPower');
-            }))
+            array(
+                \r\Asc(function ($x) {
+                    return $x('combatPower');
+                }),
+                \r\Desc(function ($x) {
+                    return $x('compassionPower');
+                })
+            )
         )->map(
             \r\row('superhero')
         )->run($this->conn);
@@ -218,8 +223,8 @@ class TransformationsTest extends TestCase
     {
         $this->assertEquals(
             array(1, 3, 2, 4),
-            \r\union(\r\expr(array(1, 3)), \r\expr(array(2, 4)), array('interleave' => false))
-            ->run($this->conn)
+            \r\union(\r\expr(array(1, 3)), \r\expr(array(2, 4)), new UnionOptions(interleave: false))
+                ->run($this->conn)
         );
     }
 
@@ -227,11 +232,13 @@ class TransformationsTest extends TestCase
     {
         $this->assertEquals(
             array(1, 2, 3, 4),
-            \r\union(\r\expr(array(array('a' => 1), array('a' => 3))),
+            \r\union(
+                \r\expr(array(array('a' => 1), array('a' => 3))),
                 \r\expr(array(array('a' => 2), array('a' => 4))),
-                array('interleave' => 'a'))
-            ->getField('a')
-            ->run($this->conn)
+                new UnionOptions(interleave: 'a')
+            )
+                ->getField('a')
+                ->run($this->conn)
         );
     }
 
@@ -267,7 +274,7 @@ class TransformationsTest extends TestCase
 
     public function testOffsetOf()
     {
-        $res = \r\expr(array('a','b','c'))->offsetsOf('c')->run($this->conn);
+        $res = \r\expr(array('a', 'b', 'c'))->offsetsOf('c')->run($this->conn);
 
         $this->assertEquals(array(2), $res);
     }

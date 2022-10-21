@@ -2,6 +2,11 @@
 
 namespace r\ValuedQuery;
 
+use r\Options\BetweenOptions;
+use r\Options\DeleteOptions;
+use r\Options\DistanceOptions;
+use r\Options\UnionOptions;
+use r\Options\UpdateOptions;
 use r\Queries\Aggregations\Avg;
 use r\Queries\Aggregations\Contains;
 use r\Queries\Aggregations\Count;
@@ -111,27 +116,89 @@ abstract class ValuedQuery extends Query
         return new Bracket($this, $attributeOrIndex);
     }
 
-    public function update($delta, $opts = null): Update
+    /**
+     * Update JSON documents in a table. Accepts a JSON document, a ReQL expression, or a combination of the two.
+     * @param array|object|callable $delta
+     * @param UpdateOptions $opts
+     * @return Update
+     */
+    public function update(array|object|callable $delta, UpdateOptions $opts = new UpdateOptions()): Update
     {
         return new Update($this, $delta, $opts);
     }
 
-    public function delete($opts = null): Delete
+    /**
+     * Delete one or more documents from a table.
+     * @param DeleteOptions $opts
+     * @return Delete
+     */
+    public function delete(DeleteOptions $opts = new DeleteOptions()): Delete
     {
         return new Delete($this, $opts);
     }
 
-    public function replace($delta, $opts = null): Replace
+    /**
+     * Replace documents in a table. Accepts a JSON document or a ReQL expression, and replaces the original document
+     * with the new one. The new document must have the same primary key as the original document.
+     *
+     * The replace command can be used to both insert and delete documents. If the “replaced” document has a primary
+     * key that doesn’t exist in the table, the document will be inserted; if an existing document is replaced with
+     * null, the document will be deleted. Since update and replace operations are performed atomically, this allows
+     * atomic inserts and deletes as well.
+     * @param array|object|callable $delta
+     * @param UpdateOptions $opts
+     * @return Replace
+     */
+    public function replace(array|object|callable $delta, UpdateOptions $opts = new UpdateOptions()): Replace
     {
         return new Replace($this, $delta, $opts);
     }
 
-    public function between($leftBound, $rightBound, $opts = null): Between
+    /**
+     * Get all documents between two keys. Accepts three optional arguments: index, leftBound, and rightBound. If
+     * index is set to the name of a secondary index, between will return all documents where that index’s value is in
+     * the specified range (it uses the primary key by default). leftBound or rightBound may be set to open or closed
+     * to indicate whether or not to include that endpoint of the range (by default, leftBound is closed and rightBound
+     * is open).
+     *
+     * You may also use the special constants r.minval and r.maxval for boundaries, which represent “less than any
+     * index key” and “more than any index key” respectively. For instance, if you use r.minval as the lower key, then
+     * between will return all documents whose primary keys (or indexes) are less than the specified upper key.
+     *
+     * If you use arrays as indexes (compound indexes), they will be sorted using lexicographical order.
+     *
+     * The between command works with secondary indexes on date fields, but will not work with unindexed date fields.
+     * To test whether a date value is between two other dates, use the during command, not between.
+     *
+     * Secondary indexes can be used in extremely powerful ways with between and other commands; read the full article
+     * on secondary indexes for examples using boolean operations, contains and more.
+     *
+     * RethinkDB uses byte-wise ordering for between and does not support Unicode collations; non-ASCII characters will
+     * be sorted by UTF-8 codepoint.
+     * @param mixed $leftBound
+     * @param mixed $rightBound
+     * @param BetweenOptions $opts
+     * @return Between
+     */
+    public function between(mixed $leftBound, mixed $rightBound, BetweenOptions $opts = new BetweenOptions()): Between
     {
         return new Between($this, $leftBound, $rightBound, $opts);
     }
 
-    public function filter($predicate, $default = null): Filter
+    /**
+     * Return all the elements in a sequence for which the given predicate is true. The return value of filter will be
+     * the same as the input (sequence, stream, or array). Documents can be filtered in a variety of ways—ranges,
+     * nested values, boolean conditions, and the results of anonymous functions.
+     *
+     * By default, filter will silently skip documents with missing fields: if the predicate tries to access a field
+     * that doesn’t exist (for instance, the predicate {age: 30} applied to a document with no age field), that
+     * document will not be returned in the result set, and no error will be generated. This behavior can be changed
+     * with the default optional argument.
+     * @param callable|Query $predicate
+     * @param mixed|null $default
+     * @return Filter
+     */
+    public function filter(callable|Query $predicate, mixed $default = null): Filter
     {
         return new Filter($this, $predicate, $default);
     }
@@ -166,9 +233,20 @@ abstract class ValuedQuery extends Query
         return new Map($this, $mappingFunction);
     }
 
-    public function mapMultiple($moreSequences, $mappingFunction): MapMultiple
+    /**
+     * Transform each element of one or more sequences by applying a mapping function to them. If map is run with two or
+     * more sequences, it will iterate for as many items as there are in the shortest sequence.
+     *
+     * Note that map can only be applied to sequences, not single values. If you wish to apply a function to a single
+     * value/selection (including an array), use the do command.
+     *
+     * @param array|Query $sequences
+     * @param callable|Query|array ...$mappingFunction
+     * @return MapMultiple
+     */
+    public function mapMultiple(callable|Query|array ...$mappingFunction): MapMultiple
     {
-        return new MapMultiple($this, $moreSequences, $mappingFunction);
+        return new MapMultiple($this, ...$mappingFunction);
     }
 
     public function concatMap($mappingFunction): ConcatMap
@@ -211,9 +289,15 @@ abstract class ValuedQuery extends Query
         return new IsEmpty($this);
     }
 
-    public function union(ValuedQuery $otherSequence, $opts = null): Union
+    /**
+     * Merge two or more sequences.
+     * @see https://rethinkdb.com/api/javascript/union
+     * @param array|Query|UnionOptions ...$otherSequences
+     * @return Union
+     */
+    public function union(array|Query|UnionOptions ...$otherSequences): Union
     {
-        return new Union($this, $otherSequence, $opts);
+        return new Union($this, ...$otherSequences);
     }
 
     public function sample($n): Sample
@@ -414,51 +498,119 @@ abstract class ValuedQuery extends Query
         return new Div($this, $other);
     }
 
-    public function mod($other): Mod
+    /**
+     * Find the remainder when dividing two numbers.
+     * @see https://rethinkdb.com/api/javascript/mod/
+     * @param float|int|Query $other
+     * @return Mod
+     */
+    public function mod(float|int|Query $other): Mod
     {
         return new Mod($this, $other);
     }
 
-    public function rAnd($other): RAnd
+    /**
+     * Compute the logical “and” of one or more values.
+     *
+     * The and command can be used as an infix operator after its first argument (r.expr(true).and(false)) or given all of
+     * its arguments as parameters (r.and(true,false)).
+     * @see https://rethinkdb.com/api/javascript/and/
+     * @param bool|Query $other
+     * @return RAnd
+     */
+    public function rAnd(bool|Query $other): RAnd
     {
         return new RAnd($this, $other);
     }
 
-    public function rOr($other): ROr
+    /**
+     * Compute the logical “or” of one or more values.
+     *
+     * The or command can be used as an infix operator after its first argument (r.expr(true).or(false)) or given all of
+     * its arguments as parameters (r.or(true,false)).
+     * @see https://rethinkdb.com/api/javascript/or/
+     * @param bool|Query $other
+     * @return ROr
+     */
+    public function rOr(bool|Query $other): ROr
     {
         return new ROr($this, $other);
     }
 
-    public function eq($other): Eq
+    /**
+     * Test if two or more values are equal.
+     * @see https://rethinkdb.com/api/javascript/eq/
+     * @param mixed $other
+     * @return Eq
+     */
+    public function eq(mixed $other): Eq
     {
         return new Eq($this, $other);
     }
 
+    /**
+     * Test if two or more values are not equal.
+     * @see https://rethinkdb.com/api/javascript/ne/
+     * @param $other
+     * @return Ne
+     */
     public function ne($other): Ne
     {
         return new Ne($this, $other);
     }
 
+    /**
+     * Compare values, testing if the left-hand value is greater than the right-hand.
+     * @see https://rethinkdb.com/api/javascript/gt/
+     * @param $other
+     * @return Gt
+     */
     public function gt($other): Gt
     {
         return new Gt($this, $other);
     }
 
-    public function ge($other): Ge
+    /**
+     * Compare values, testing if the left-hand value is greater than or equal to the right-hand.
+     * @see https://rethinkdb.com/api/javascript/ge/
+     * @param mixed $other
+     * @return Ge
+     */
+    public function ge(mixed $other): Ge
     {
         return new Ge($this, $other);
     }
 
-    public function lt($other): Lt
+    /**
+     * Compare values, testing if the left-hand value is less than the right-hand.
+     * @see https://rethinkdb.com/api/javascript/lt/
+     * @param mixed $other
+     * @return Lt
+     */
+    public function lt(mixed $other): Lt
     {
         return new Lt($this, $other);
     }
 
-    public function le($other): Le
+    /**
+     * Compare values, testing if the left-hand value is less than or equal to the right-hand.
+     * @see https://rethinkdb.com/api/javascript/le/
+     * @param mixed $other
+     * @return Le
+     */
+    public function le(mixed $other): Le
     {
         return new Le($this, $other);
     }
 
+    /**
+     * Compute the logical inverse (not) of an expression.
+     *
+     * not can be called either via method chaining, immediately after an expression that evaluates as a boolean value, or
+     * by passing the expression as a parameter to not. All values that are not false or null will be converted to true.
+     *
+     * @return Not
+     */
     public function not(): Not
     {
         return new Not($this);
@@ -484,16 +636,30 @@ abstract class ValuedQuery extends Query
         return new Split($this, $separator, $maxSplits);
     }
 
+    /**
+     * Rounds the given value up, returning the smallest integer value greater than or equal to the given value (the
+     * value’s ceiling).
+     * @return Ceil
+     */
     public function ceil(): Ceil
     {
         return new Ceil($this);
     }
 
+    /**
+     * Rounds the given value down, returning the largest integer value less than or equal to the given value (the
+     * value’s floor).
+     * @return Floor
+     */
     public function floor(): Floor
     {
         return new Floor($this);
     }
 
+    /**
+     * Rounds the given value to the nearest whole integer.
+     * @return Round
+     */
     public function round(): Round
     {
         return new Round($this);
@@ -604,7 +770,13 @@ abstract class ValuedQuery extends Query
         return new ToGeoJSON($this);
     }
 
-    public function intersects($g2): Intersects
+    /**
+     * Tests whether two geometry objects intersect with one another. When applied to a sequence of geometry objects,
+     * intersects acts as a filter, returning a sequence of objects from the sequence that intersect with the argument.
+     * @param Query $g2
+     * @return Intersects
+     */
+    public function intersects(Query $g2): Intersects
     {
         return new Intersects($this, $g2);
     }
@@ -614,7 +786,20 @@ abstract class ValuedQuery extends Query
         return new Includes($this, $g2);
     }
 
-    public function distance($g2, $opts = null): Distance
+    /**
+     * Compute the distance between a point and another geometry object. At least one of the geometry objects specified
+     * must be a point.
+     *
+     * If one of the objects is a polygon or a line, the point will be projected onto the line or polygon assuming a
+     * perfect sphere model before the distance is computed (using the model specified with geoSystem). As a consequence,
+     * if the polygon or line is extremely large compared to Earth’s radius and the distance is being computed with the
+     * default WGS84 model, the results of distance should be considered approximate due to the deviation between the
+     * ellipsoid and spherical models.
+     * @param Query $g2
+     * @param DistanceOptions $opts
+     * @return Distance
+     */
+    public function distance(Query $g2, DistanceOptions $opts = new DistanceOptions()): Distance
     {
         return new Distance($this, $g2, $opts);
     }

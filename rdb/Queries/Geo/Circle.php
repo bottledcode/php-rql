@@ -2,23 +2,22 @@
 
 namespace r\Queries\Geo;
 
-use r\ValuedQuery\ValuedQuery;
-use r\Exceptions\RqlDriverError;
+use r\Options\CircleOptions;
 use r\ProtocolBuffer\TermTermType;
+use r\Query;
+use r\ValuedQuery\ValuedQuery;
 
 class Circle extends ValuedQuery
 {
-    public function __construct($center, $radius, $opts)
+    public function __construct(array|Query $center, int|float|Query $radius, CircleOptions $opts)
     {
         $this->setPositionalArg(0, $this->nativeToDatum($center));
         $this->setPositionalArg(1, $this->nativeToDatum($radius));
-        if (isset($opts)) {
-            if (!is_array($opts)) {
-                throw new RqlDriverError("opts argument must be an array");
+        foreach ($opts as $k => $v) {
+            if ($v === null) {
+                continue;
             }
-            foreach ($opts as $k => $v) {
-                $this->setOptionalArg($k, $this->nativeToDatum($v));
-            }
+            $this->setOptionalArg($k, $this->nativeToDatum($v));
         }
     }
 

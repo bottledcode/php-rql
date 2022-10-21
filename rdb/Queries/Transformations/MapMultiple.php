@@ -2,24 +2,26 @@
 
 namespace r\Queries\Transformations;
 
-use r\ValuedQuery\ValuedQuery;
 use r\ProtocolBuffer\TermTermType;
+use r\Query;
+use r\ValuedQuery\ValuedQuery;
 
 class MapMultiple extends ValuedQuery
 {
-    public function __construct(ValuedQuery $sequence, $moreSequences, $mappingFunction)
+    public function __construct(array|Query $sequence, callable|Query|array ...$mappingFunction)
     {
-        if (!is_array($moreSequences)) {
-            $moreSequences = array($moreSequences);
-        }
-        $mappingFunction = $this->nativeToFunction($mappingFunction);
+        $last = end($mappingFunction);
 
-        $this->setPositionalArg(0, $sequence);
-        $i = 1;
-        foreach ($moreSequences as $seq) {
-            $this->setPositionalArg($i++, $seq);
+        $this->setPositionalArg(0, $sequence instanceof Query ? $sequence : $this->nativeToDatum($sequence));
+        for ($i = 0; $i < count($mappingFunction) - 1; $i++) {
+            $this->setPositionalArg(
+                $i + 1,
+                $mappingFunction[$i] instanceof Query
+                    ? $mappingFunction[$i]
+                    : $this->nativeToDatum($mappingFunction[$i])
+            );
         }
-        $this->setPositionalArg($i, $mappingFunction);
+        $this->setPositionalArg($i + 1, $last instanceof Query ? $last : $this->nativeToFunction($last));
     }
 
     protected function getTermType(): TermTermType

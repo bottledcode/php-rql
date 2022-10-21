@@ -2,20 +2,17 @@
 
 namespace r\Queries\Geo;
 
-use r\ValuedQuery\ValuedQuery;
-use r\Exceptions\RqlDriverError;
 use r\ProtocolBuffer\TermTermType;
+use r\Query;
+use r\ValuedQuery\ValuedQuery;
 
 class Line extends ValuedQuery
 {
-    public function __construct($points)
+    public function __construct(array|Query ...$points)
     {
-        if (!is_array($points)) {
-            throw new RqlDriverError("Points must be an array.");
-        }
         $i = 0;
         foreach ($points as $point) {
-            $this->setPositionalArg($i++, $this->nativeToDatum($point));
+            $this->setPositionalArg($i++, $point instanceof Query ? $point : $this->nativeToDatum($point));
         }
     }
 

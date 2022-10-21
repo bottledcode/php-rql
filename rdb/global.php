@@ -11,9 +11,14 @@ use r\Datum\ObjectDatum;
 use r\Datum\StringDatum;
 use r\Exceptions\RqlDriverError;
 use r\Options\BinaryFormat;
+use r\Options\CircleOptions;
+use r\Options\DistanceOptions;
 use r\Options\HttpOptions;
+use r\Options\Iso8601Options;
+use r\Options\RandomOptions;
 use r\Options\TableCreateOptions;
 use r\Options\TableOptions;
+use r\Options\UnionOptions;
 use r\Ordering\Asc;
 use r\Ordering\Desc;
 use r\Queries\Control\Args;
@@ -493,258 +498,635 @@ function div(int|float|Query $expr1, int|float|Query $expr2): Div
     return new Div($expr1, $expr2);
 }
 
-function mod($expr1, $expr2): Mod
+/**
+ * Find the remainder when dividing two numbers.
+ * @see https://rethinkdb.com/api/javascript/mod/
+ * @param int|float|Query $expr1
+ * @param int|float|Query $expr2
+ * @return Mod
+ */
+function mod(int|float|Query $expr1, int|float|Query $expr2): Mod
 {
     return new Mod($expr1, $expr2);
 }
 
-function rAnd($expr1, $expr2): RAnd
+/**
+ * Compute the logical “and” of one or more values.
+ *
+ * The and command can be used as an infix operator after its first argument (r.expr(true).and(false)) or given all of
+ * its arguments as parameters (r.and(true,false)).
+ * @see https://rethinkdb.com/api/javascript/and/
+ * @param bool|Query $expr1
+ * @param bool|Query $expr2
+ * @return RAnd
+ */
+function rAnd(bool|Query $expr1, bool|Query $expr2): RAnd
 {
     return new RAnd($expr1, $expr2);
 }
 
-function rOr($expr1, $expr2): ROr
+/**
+ * Compute the logical “or” of one or more values.
+ *
+ * The or command can be used as an infix operator after its first argument (r.expr(true).or(false)) or given all of
+ * its arguments as parameters (r.or(true,false)).
+ * @see https://rethinkdb.com/api/javascript/or/
+ * @param bool|Query $expr1
+ * @param bool|Query $expr2
+ * @return ROr
+ */
+function rOr(bool|Query $expr1, bool|Query $expr2): ROr
 {
     return new ROr($expr1, $expr2);
 }
 
-function eq($expr1, $expr2): Eq
+/**
+ * Test if two or more values are equal.
+ * @see https://rethinkdb.com/api/javascript/eq/
+ * @param mixed $expr1
+ * @param mixed $expr2
+ * @return Eq
+ */
+function eq(mixed $expr1, mixed $expr2): Eq
 {
     return new Eq($expr1, $expr2);
 }
 
-function ne($expr1, $expr2): Ne
+/**
+ * Test if two or more values are not equal.
+ * @see https://rethinkdb.com/api/javascript/ne/
+ * @param mixed $expr1
+ * @param mixed $expr2
+ * @return Ne
+ */
+function ne(mixed $expr1, mixed $expr2): Ne
 {
     return new Ne($expr1, $expr2);
 }
 
-function gt($expr1, $expr2): Gt
+/**
+ * Compare values, testing if the left-hand value is greater than the right-hand.
+ * @see https://rethinkdb.com/api/javascript/gt/
+ * @param mixed $expr1
+ * @param mixed $expr2
+ * @return Gt
+ */
+function gt(mixed $expr1, mixed $expr2): Gt
 {
     return new Gt($expr1, $expr2);
 }
 
-function ge($expr1, $expr2): Ge
+/**
+ * Compare values, testing if the left-hand value is greater than or equal to the right-hand.
+ * @see https://rethinkdb.com/api/javascript/ge/
+ * @param mixed $expr1
+ * @param mixed $expr2
+ * @return Ge
+ */
+function ge(mixed $expr1, mixed $expr2): Ge
 {
     return new Ge($expr1, $expr2);
 }
 
-function lt($expr1, $expr2): Lt
+/**
+ * Compare values, testing if the left-hand value is less than the right-hand.
+ * @see https://rethinkdb.com/api/javascript/lt/
+ * @param mixed $expr1
+ * @param mixed $expr2
+ * @return Lt
+ */
+function lt(mixed $expr1, mixed $expr2): Lt
 {
     return new Lt($expr1, $expr2);
 }
 
-function le($expr1, $expr2): Le
+/**
+ * Compare values, testing if the left-hand value is less than or equal to the right-hand.
+ * @see https://rethinkdb.com/api/javascript/le/
+ * @param mixed $expr1
+ * @param mixed $expr2
+ * @return Le
+ */
+function le(mixed $expr1, mixed $expr2): Le
 {
     return new Le($expr1, $expr2);
 }
 
-function not($expr): Not
+/**
+ * Compute the logical inverse (not) of an expression.
+ *
+ * not can be called either via method chaining, immediately after an expression that evaluates as a boolean value, or
+ * by passing the expression as a parameter to not. All values that are not false or null will be converted to true.
+ *
+ * @param bool|Query $expr
+ * @return Not
+ */
+function not(bool|Query $expr): Not
 {
     return new Not($expr);
 }
 
-function random($left = null, $right = null, $opts = null): Random
-{
+/**
+ * Generate a random number between given (or implied) bounds. random takes zero, one or two arguments.
+ *
+ * - With zero arguments, the result will be a floating-point number in the range [0,1) (from 0 up to but not including
+ *   1).
+ * - With one argument x, the result will be in the range [0,x), and will be integer unless {float: true} is given as
+ *   an option. Specifying a floating point number without the float option will raise an error.
+ * - With two arguments x and y, the result will be in the range [x,y), and will be integer unless {float: true} is
+ *   given as an option. If x and y are equal an error will occur, unless the floating-point option has been specified,
+ *   in which case x will be returned. Specifying a floating point number without the float option will raise an error.
+ * Note: The last argument given will always be the ‘open’ side of the range, but when generating a floating-point
+ * number, the ‘open’ side may be less than the ‘closed’ side.
+ * @see https://rethinkdb.com/api/javascript/random/
+ * @param int|float|Query|null $left
+ * @param int|float|Query|RandomOptions|null $right
+ * @param RandomOptions|null $opts
+ * @return Random
+ */
+function random(
+    int|float|Query|null $left = null,
+    int|float|Query|RandomOptions|null $right = null,
+    RandomOptions|null $opts = null
+): Random {
     return new Random($left, $right, $opts);
 }
 
+/**
+ * Return a time object representing the current time in UTC. The command now() is computed once when the server
+ * receives the query, so multiple instances of r.now() will always return the same time inside a query.
+ * @return Now
+ */
 function now(): Now
 {
     return new Now();
 }
 
-function time($year, $month, $day, $hourOrTimezone = null, $minute = null, $second = null, $timezone = null): Time
-{
+/**
+ * Create a time object for a specific time.
+ *
+ * A few restrictions exist on the arguments:
+ *
+ * - year is an integer between 1400 and 9,999.
+ * - month is an integer between 1 and 12.
+ * - day is an integer between 1 and 31.
+ * - hour is an integer.
+ * - minutes is an integer.
+ * - seconds is a double. Its value will be rounded to three decimal places (millisecond-precision).
+ * - timezone can be 'Z' (for UTC) or a string with the format ±[hh]:[mm].
+ *
+ * @param int|Query $year
+ * @param int|Query $month
+ * @param int|Query $day
+ * @param string|int|Query|null $hourOrTimezone
+ * @param string|int|Query|null $minute
+ * @param string|int|Query|null $second
+ * @param string|int|Query|null $timezone
+ * @return Time
+ */
+function time(
+    int|Query $year,
+    int|Query $month,
+    int|Query $day,
+    string|int|null|Query $hourOrTimezone = null,
+    string|int|null|Query $minute = null,
+    string|int|null|Query $second = null,
+    string|int|null|Query $timezone = null
+): Time {
     return new Time($year, $month, $day, $hourOrTimezone, $minute, $second, $timezone);
 }
 
-function epochTime($epochTime): EpochTime
+/**
+ * Create a time object based on seconds since epoch. The first argument is a double and will be rounded to three
+ * decimal places (millisecond-precision).
+ * @param int|float|Query $epochTime
+ * @return EpochTime
+ */
+function epochTime(int|float|Query $epochTime): EpochTime
 {
     return new EpochTime($epochTime);
 }
 
-function iso8601($iso8601Date, $opts = null): Iso8601
+/**
+ * Create a time object based on an ISO 8601 date-time string (e.g. ‘2013-01-01T01:01:01+00:00’). RethinkDB supports
+ * all valid ISO 8601 formats except for week dates. Read more about the ISO 8601 format at Wikipedia.
+ *
+ * If you pass an ISO 8601 string without a time zone, you must specify the time zone with the defaultTimezone argument.
+ *
+ * @param string|Query $iso8601Date
+ * @param Iso8601Options $opts
+ * @return Iso8601
+ */
+function iso8601(string|Query $iso8601Date, Iso8601Options $opts = new Iso8601Options()): Iso8601
 {
     return new Iso8601($iso8601Date, $opts);
 }
 
+/**
+ * @see https://rethinkdb.com/docs/dates-and-times/java/#retrieving-portions-of-times
+ * @return Monday
+ */
 function monday(): Monday
 {
     return new Monday();
 }
 
+/**
+ * @see https://rethinkdb.com/docs/dates-and-times/java/#retrieving-portions-of-times
+ * @return Tuesday
+ */
 function tuesday(): Tuesday
 {
     return new Tuesday();
 }
 
+/**
+ * @see https://rethinkdb.com/docs/dates-and-times/java/#retrieving-portions-of-times
+ * @return Wednesday
+ */
 function wednesday(): Wednesday
 {
     return new Wednesday();
 }
 
+/**
+ * @see https://rethinkdb.com/docs/dates-and-times/java/#retrieving-portions-of-times
+ * @return Thursday
+ */
 function thursday(): Thursday
 {
     return new Thursday();
 }
 
+/**
+ * @see https://rethinkdb.com/docs/dates-and-times/java/#retrieving-portions-of-times
+ * @return Friday
+ */
 function friday(): Friday
 {
     return new Friday();
 }
 
+/**
+ * @see https://rethinkdb.com/docs/dates-and-times/java/#retrieving-portions-of-times
+ * @return Saturday
+ */
 function saturday(): Saturday
 {
     return new Saturday();
 }
 
+/**
+ * @see https://rethinkdb.com/docs/dates-and-times/java/#retrieving-portions-of-times
+ * @return Sunday
+ */
 function sunday(): Sunday
 {
     return new Sunday();
 }
 
+/**
+ * @see https://rethinkdb.com/docs/dates-and-times/java/#retrieving-portions-of-times
+ * @return January
+ */
 function january(): January
 {
     return new January();
 }
 
+/**
+ * @see https://rethinkdb.com/docs/dates-and-times/java/#retrieving-portions-of-times
+ * @return February
+ */
 function february(): February
 {
     return new February();
 }
 
+/**
+ * @see https://rethinkdb.com/docs/dates-and-times/java/#retrieving-portions-of-times
+ * @return March
+ */
 function march(): March
 {
     return new March();
 }
 
+/**
+ * @see https://rethinkdb.com/docs/dates-and-times/java/#retrieving-portions-of-times
+ * @return April
+ */
 function april(): April
 {
     return new April();
 }
 
+/**
+ * @see https://rethinkdb.com/docs/dates-and-times/java/#retrieving-portions-of-times
+ * @return May
+ */
 function may(): May
 {
     return new May();
 }
 
+/**
+ * @see https://rethinkdb.com/docs/dates-and-times/java/#retrieving-portions-of-times
+ * @return June
+ */
 function june(): June
 {
     return new June();
 }
 
+/**
+ * @see https://rethinkdb.com/docs/dates-and-times/java/#retrieving-portions-of-times
+ * @return July
+ */
 function july(): July
 {
     return new July();
 }
 
+/**
+ * @see https://rethinkdb.com/docs/dates-and-times/java/#retrieving-portions-of-times
+ * @return August
+ */
 function august(): August
 {
     return new August();
 }
 
+/**
+ * @see https://rethinkdb.com/docs/dates-and-times/java/#retrieving-portions-of-times
+ * @return September
+ */
 function september(): September
 {
     return new September();
 }
 
+/**
+ * @see https://rethinkdb.com/docs/dates-and-times/java/#retrieving-portions-of-times
+ * @return October
+ */
 function october(): October
 {
     return new October();
 }
 
+/**
+ * @see https://rethinkdb.com/docs/dates-and-times/java/#retrieving-portions-of-times
+ * @return November
+ */
 function november(): November
 {
     return new November();
 }
 
+/**
+ * @see https://rethinkdb.com/docs/dates-and-times/java/#retrieving-portions-of-times
+ * @return December
+ */
 function december(): December
 {
     return new December();
 }
 
-function geoJSON($geojson): GeoJSON
+/**
+ * Convert a GeoJSON object to a ReQL geometry object.
+ *
+ * RethinkDB only allows conversion of GeoJSON objects which have ReQL equivalents: Point, LineString, and Polygon.
+ * MultiPoint, MultiLineString, and MultiPolygon are not supported. (You could, however, store multiple points, lines
+ * and polygons in an array and use a geospatial multi index with them.)
+ *
+ * Only longitude/latitude coordinates are supported. GeoJSON objects that use Cartesian coordinates, specify an
+ * altitude, or specify their own coordinate reference system will be rejected.
+ * @see https://rethinkdb.com/api/javascript/geoJSON
+ * @param array|object $geojson
+ * @return GeoJSON
+ */
+function geoJSON(array|object $geojson): GeoJSON
 {
     return new GeoJSON($geojson);
 }
 
-function point($lat, $lon): Point
+/**
+ * Construct a geometry object of type Point. The point is specified by two floating point numbers, the
+ * longitude (−180 to 180) and latitude (−90 to 90) of the point on a perfect sphere. See Geospatial support for more
+ * information on ReQL’s coordinate system.
+ * @see https://rethinkdb.com/api/javascript/point
+ * @param int|float|Query $lat
+ * @param int|float|Query $lon
+ * @return Point
+ */
+function point(int|float|Query $lat, int|float|Query $lon): Point
 {
     return new Point($lat, $lon);
 }
 
-function line($points): Line
+/**
+ * Construct a geometry object of type Line. The line can be specified in one of two ways:
+ *
+ * - Two or more two-item arrays, specifying latitude and longitude numbers of the line’s vertices;
+ * - Two or more Point objects specifying the line’s vertices.
+ * Longitude (−180 to 180) and latitude (−90 to 90) of vertices are plotted on a perfect sphere. See Geospatial support
+ * for more information on ReQL’s coordinate system.
+ * @see https://rethinkdb.com/api/javascript/line
+ * @param array|Query ...$points
+ * @return Line
+ */
+function line(array|Query ...$points): Line
 {
-    return new Line($points);
+    return new Line(...$points);
 }
 
-function polygon($points): Polygon
+/**
+ * Construct a geometry object of type Polygon. The Polygon can be specified in one of two ways:
+ *
+ * - Three or more two-item arrays, specifying latitude and longitude numbers of the polygon’s vertices;
+ * - Three or more Point objects specifying the polygon’s vertices.
+ * Longitude (−180 to 180) and latitude (−90 to 90) of vertices are plotted on a perfect sphere. See Geospatial
+ * support for more information on ReQL’s coordinate system.
+ *
+ * If the last point does not specify the same coordinates as the first point, polygon will close the polygon by
+ * connecting them. You cannot directly construct a polygon with holes in it using polygon, but you can use polygonSub
+ * to use a second polygon within the interior of the first to define a hole.
+ * @see https://rethinkdb.com/api/javascript/polygon
+ * @param array|Query ...$points
+ * @return Polygon
+ */
+function polygon(array|Query ...$points): Polygon
 {
-    return new Polygon($points);
+    return new Polygon(...$points);
 }
 
-function circle($center, $radius, $opts = null): Circle
+/**
+ * Construct a circular line or polygon. A circle in RethinkDB is a polygon or line approximating a circle of a given
+ * radius around a given center, consisting of a specified number of vertices (default 32).
+ *
+ * The center may be specified either by two floating point numbers, the latitude (−90 to 90) and
+ * longitude (−180 to 180) of the point on a perfect sphere (see Geospatial support for more information on ReQL’s
+ * coordinate system), or by a point object. The radius is a floating point number whose units are meters by default,
+ * although that may be changed with the unit argument.
+ * @param array|Query $center
+ * @param int|float|Query $radius
+ * @param CircleOptions $opts
+ * @return Circle
+ */
+function circle(array|Query $center, int|float|Query $radius, CircleOptions $opts = new CircleOptions()): Circle
 {
     return new Circle($center, $radius, $opts);
 }
 
-function intersects($g1, $g2): Intersects
+/**
+ * Tests whether two geometry objects intersect with one another. When applied to a sequence of geometry objects,
+ * intersects acts as a filter, returning a sequence of objects from the sequence that intersect with the argument.
+ * @param Query $g1
+ * @param Query $g2
+ * @return Intersects
+ */
+function intersects(Query $g1, Query $g2): Intersects
 {
     return new Intersects($g1, $g2);
 }
 
-function distance($g1, $g2, $opts = null): Distance
+/**
+ * Compute the distance between a point and another geometry object. At least one of the geometry objects specified
+ * must be a point.
+ *
+ * If one of the objects is a polygon or a line, the point will be projected onto the line or polygon assuming a
+ * perfect sphere model before the distance is computed (using the model specified with geoSystem). As a consequence,
+ * if the polygon or line is extremely large compared to Earth’s radius and the distance is being computed with the
+ * default WGS84 model, the results of distance should be considered approximate due to the deviation between the
+ * ellipsoid and spherical models.
+ * @param Query $g1
+ * @param Query $g2
+ * @param DistanceOptions $opts
+ * @return Distance
+ */
+function distance(Query $g1, Query $g2, DistanceOptions $opts = new DistanceOptions()): Distance
 {
     return new Distance($g1, $g2, $opts);
 }
 
-function uuid($str = null): Uuid
+/**
+ * Return a UUID (universally unique identifier), a string that can be used as a unique ID. If a string is passed to
+ * uuid as an argument, the UUID will be deterministic, derived from the string’s SHA-1 hash.
+ *
+ * RethinkDB’s UUIDs are standards-compliant. Without the optional argument, a version 4 random UUID will be
+ * generated; with that argument, a version 5 UUID will be generated, using a fixed namespace UUID of
+ * 91461c99-f89d-49d2-af96-d8e2e14e9b58. For more information, read Wikipedia’s UUID article.
+ *
+ * Please take into consideration when you generating version 5 UUIDs can’t be considered guaranteed unique if they’re
+ * computing based on user data because they use SHA-1 algorithm.
+ *
+ * @param $str
+ * @return Uuid
+ */
+function uuid(string|Query $str = null): Uuid
 {
     return new Uuid($str);
 }
 
+/**
+ * @see https://rethinkdb.com/api/javascript/between/
+ * @return Minval
+ */
 function minval(): Minval
 {
     return new Minval();
 }
 
+/**
+ * @see https://rethinkdb.com/api/javascript/between/
+ * @return Maxval
+ */
 function maxval(): Maxval
 {
     return new Maxval();
 }
 
-function range($startOrEndValue = null, $endValue = null): Range
+/**
+ * Generate a stream of sequential integers in a specified range.
+ *
+ * range takes 0, 1 or 2 arguments:
+ *
+ * - With no arguments, range returns an “infinite” stream from 0 up to and including the maximum integer value;
+ * - With one argument, range returns a stream from 0 up to but not including the end value;
+ * - With two arguments, range returns a stream from the start value up to but not including the end value.
+ * Note that the left bound (including the implied left bound of 0 in the 0- and 1-argument form) is always closed and
+ * the right bound is always open: the start value will always be included in the returned range and the end value will
+ * not be included in the returned range.
+ *
+ * Any specified arguments must be integers, or a ReqlRuntimeError will be thrown. If the start value is equal or to
+ * higher than the end value, no error will be thrown but a zero-element stream will be returned.
+ *
+ * @param int|Query|null $startOrEndValue
+ * @param int|Query|null $endValue
+ * @return Range
+ */
+function range(int|Query $startOrEndValue = null, int|Query $endValue = null): Range
 {
     return new Range($startOrEndValue, $endValue);
 }
 
-function mapMultiple(array|object $sequences, $mappingFunction): MapMultiple
+/**
+ * Transform each element of one or more sequences by applying a mapping function to them. If map is run with two or
+ * more sequences, it will iterate for as many items as there are in the shortest sequence.
+ *
+ * Note that map can only be applied to sequences, not single values. If you wish to apply a function to a single
+ * value/selection (including an array), use the do command.
+ *
+ * @param array|Query $sequences
+ * @param callable|Query|array ...$mappingFunction
+ * @return MapMultiple
+ */
+function mapMultiple(array|Query $sequences, callable|Query|array ...$mappingFunction): MapMultiple
 {
-    if (!is_array($sequences)) {
-        $sequences = array($sequences);
-    }
-    if (sizeof($sequences) < 1) {
-        throw new RqlDriverError("At least one sequence must be passed into r\mapMultiple.");
-    }
-    return new MapMultiple($sequences[0], array_slice($sequences, 1), $mappingFunction);
+    return new MapMultiple($sequences, ...$mappingFunction);
 }
 
-function union($sequence, $otherSequence, $opts = null): Union
+/**
+ * Merge two or more sequences.
+ * @see https://rethinkdb.com/api/javascript/union
+ * @param array|Query $sequence
+ * @param array|Query|UnionOptions ...$otherSequences
+ * @return Union
+ */
+function union(array|Query $sequence, array|Query|UnionOptions ...$otherSequences): Union
 {
-    return new Union($sequence, $otherSequence, $opts);
+    return new Union($sequence, ...$otherSequences);
 }
 
-function ceil($value): Ceil
+/**
+ * Rounds the given value up, returning the smallest integer value greater than or equal to the given value (the
+ * value’s ceiling).
+ * @param float|int|Query $value
+ * @return Ceil
+ */
+function ceil(float|int|Query $value): Ceil
 {
     return new Ceil($value);
 }
 
-function floor($value): Floor
+/**
+ * Rounds the given value down, returning the largest integer value less than or equal to the given value (the value’s
+ * floor).
+ * @param float|int|Query $value
+ * @return Floor
+ */
+function floor(float|int|Query $value): Floor
 {
     return new Floor($value);
 }
 
-function round($value): Round
+/**
+ * Rounds the given value to the nearest whole integer.
+ * @param float|int|Query $value
+ * @return Round
+ */
+function round(float|int|Query $value): Round
 {
     return new Round($value);
 }

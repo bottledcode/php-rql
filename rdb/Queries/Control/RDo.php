@@ -8,7 +8,7 @@ use r\ProtocolBuffer\TermTermType;
 
 class RDo extends ValuedQuery
 {
-    public function __construct(array $args, Query|callable $inExpr)
+    public function __construct(array|Query $args, Query|callable $inExpr)
     {
         $inExpr = $this->nativeToFunction($inExpr);
         $this->setPositionalArg(0, $inExpr);

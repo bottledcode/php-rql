@@ -2,24 +2,24 @@
 
 namespace r\Queries\Writing;
 
-use r\ValuedQuery\ValuedQuery;
-use r\Exceptions\RqlDriverError;
+use r\Options\DeleteOptions;
 use r\ProtocolBuffer\TermTermType;
+use r\ValuedQuery\ValuedQuery;
 
 class Delete extends ValuedQuery
 {
-    public function __construct(ValuedQuery $selection, $opts = null)
+    public function __construct(ValuedQuery $selection, DeleteOptions $opts)
     {
-        if (isset($opts) && !\is_array($opts)) {
-            throw new RqlDriverError("Options must be an array.");
-        }
-
         $this->setPositionalArg(0, $selection);
 
-        if (isset($opts)) {
-            foreach ($opts as $opt => $val) {
-                $this->setOptionalArg($opt, $this->nativeToDatum($val));
+        foreach ($opts as $opt => $val) {
+            if ($val === null) {
+                continue;
             }
+            if ($val instanceof \BackedEnum) {
+                $val = $val->value;
+            }
+            $this->setOptionalArg($opt, $this->nativeToDatum($val));
         }
     }
 

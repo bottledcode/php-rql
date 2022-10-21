@@ -3,6 +3,7 @@
 namespace r\Tests\Functional;
 
 use r\Tests\TestCase;
+use r\ValuedQuery\RVar;
 
 // use function \r\row;
 // use function \r\expr;
@@ -27,7 +28,7 @@ class MapTest extends TestCase
     public function testMap()
     {
         $res = $this->db()->table('marvel')->map(function ($hero) {
-                return $hero('combatPower')->add($hero('compassionPower')->mul(2));
+            return $hero('combatPower')->add($hero('compassionPower')->mul(2));
         })
             ->run($this->conn);
 
@@ -47,9 +48,9 @@ class MapTest extends TestCase
     {
         $res = \r\expr(
             array(
-                    $this->db()->table('marvel')->coerceTo('array'),
-                    $this->db()->table('marvel')->coerceTo('array')
-                )
+                $this->db()->table('marvel')->coerceTo('array'),
+                $this->db()->table('marvel')->coerceTo('array')
+            )
         )->concatMap(function ($hero) {
             return $hero->pluck('superhero');
         })
@@ -66,9 +67,9 @@ class MapTest extends TestCase
     {
         $res = \r\expr(
             array(
-                    $this->db()->table('marvel')->coerceTo('array'),
-                    $this->db()->table('marvel')->coerceTo('array')
-                )
+                $this->db()->table('marvel')->coerceTo('array'),
+                $this->db()->table('marvel')->coerceTo('array')
+            )
         )->concatMap(\r\row()->pluck('superhero'))
             ->map(\r\row('superhero'))
             ->run($this->conn);
@@ -100,11 +101,9 @@ class MapTest extends TestCase
     public function testMapMultipleRange()
     {
         $res = \r\mapMultiple(
-            array(
-                    \r\range(1, 4),
-                    \r\range(2, 5)
-                ),
-            function ($x, $y) {
+            \r\range(1, 4),
+            \r\range(2, 5),
+            function (RVar $x, RVar $y) {
                 return $x->add($y);
             }
         )->run($this->conn);
@@ -112,25 +111,23 @@ class MapTest extends TestCase
         $this->assertEquals(array(3, 5, 7), $res->toArray());
     }
 
-    public function tesRangetMapMultiple()
+    public function testRangeMapMultiple()
     {
         $res = \r\range(1, 4)
             ->mapMultiple(
-                array(
-                    \r\range(2, 5)
-                ),
-                function ($x, $y) {
+                \r\range(2, 5),
+                function (RVar $x, RVar $y) {
                     return $x->add($y);
                 }
             )->run($this->conn);
 
-        $this->assertEquals(array(3, 5, 7), (array)$res);
+        $this->assertEquals(array(3, 5, 7), $res->toArray());
     }
 
-    public function tesRangetMapMultipleFunc()
+    public function testRangeMapMultipleFunc()
     {
         $res = \r\range(1, 4)
-            ->mapMultiple(\r\range(2, 5), function ($x, $y) {
+            ->mapMultiple(\r\range(2, 5), function (RVar $x, RVar $y) {
                 return $x->add($y);
             })
             ->run($this->conn);
@@ -142,11 +139,9 @@ class MapTest extends TestCase
     {
         $res = \r\range(1, 4)
             ->mapMultiple(
-                array(
-                    \r\range(2, 5),
-                    \r\range(1, 4)
-                ),
-                function ($x, $y, $z) {
+                \r\range(2, 5),
+                \r\range(1, 4),
+                function (RVar $x, RVar $y, RVar $z) {
                     return $x->add($y)->sub($z);
                 }
             )->run($this->conn);

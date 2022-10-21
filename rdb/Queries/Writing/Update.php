@@ -2,19 +2,18 @@
 
 namespace r\Queries\Writing;
 
-use r\ValuedQuery\ValuedQuery;
 use r\Exceptions\RqlDriverError;
-use r\ValuedQuery\Json;
+use r\Options\UpdateOptions;
 use r\ProtocolBuffer\TermTermType;
+use r\Query;
+use r\ValuedQuery\Json;
+use r\ValuedQuery\ValuedQuery;
 
 class Update extends ValuedQuery
 {
-    public function __construct(ValuedQuery $selection, $delta, $opts = null)
+    public function __construct(Query $selection, array|object|callable $delta, UpdateOptions $opts)
     {
-        if (isset($opts) && !\is_array($opts)) {
-            throw new RqlDriverError("Options must be an array.");
-        }
-        if (!(is_object($delta) && is_subclass_of($delta, "\\r\\Query"))) {
+        if (!($delta instanceof Query)) {
             try {
                 $json = $this->tryEncodeAsJson($delta);
                 if ($json !== false) {
@@ -30,10 +29,14 @@ class Update extends ValuedQuery
 
         $this->setPositionalArg(0, $selection);
         $this->setPositionalArg(1, $delta);
-        if (isset($opts)) {
-            foreach ($opts as $opt => $val) {
-                $this->setOptionalArg($opt, $this->nativeToDatum($val));
+        foreach ($opts as $opt => $val) {
+            if ($val === null) {
+                continue;
             }
+            if ($val instanceof \BackedEnum) {
+                $val = $val->value;
+            }
+            $this->setOptionalArg($opt, $this->nativeToDatum($val));
         }
     }
 
