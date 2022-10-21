@@ -7,7 +7,7 @@ use r\ProtocolBuffer\TermTermType;
 
 class Asc extends Ordering
 {
-    public function __construct($attribute)
+    public function __construct(string|callable $attribute)
     {
         $attribute = $this->nativeToDatumOrFunction($attribute);
         $this->setPositionalArg(0, $attribute);

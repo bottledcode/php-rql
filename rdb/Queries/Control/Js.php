@@ -12,17 +12,8 @@ class Js extends FunctionQuery
 {
     public function __construct(string|Query $code, int|null|float $timeout = null)
     {
-        if (isset($timeout)) {
-            $timeout = new NumberDatum($timeout);
-        }
-        if (!(is_object($code) && is_subclass_of($code, Query::class))) {
-            $code = new StringDatum($code);
-        }
-
-        $this->setPositionalArg(0, $code);
-        if (isset($timeout)) {
-            $this->setOptionalArg('timeout', $timeout);
-        }
+        $this->setPositionalArg(0, ($code instanceof Query) ? $code : new StringDatum($code));
+        null !== $timeout && $this->setOptionalArg('timeout', new NumberDatum($timeout));
     }
 
     protected function getTermType(): TermTermType

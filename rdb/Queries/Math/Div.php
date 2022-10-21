@@ -2,12 +2,12 @@
 
 namespace r\Queries\Math;
 
-use r\ValuedQuery\ValuedQuery;
 use r\ProtocolBuffer\TermTermType;
+use r\Query;
 
 class Div extends BinaryOp
 {
-    public function __construct($value, $other)
+    public function __construct(int|float|Query $value, int|float|Query $other)
     {
         parent::__construct(TermTermType::PB_DIV, $value, $other);
     }

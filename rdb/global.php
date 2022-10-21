@@ -10,6 +10,8 @@ use r\Datum\NumberDatum;
 use r\Datum\ObjectDatum;
 use r\Datum\StringDatum;
 use r\Exceptions\RqlDriverError;
+use r\Options\BinaryFormat;
+use r\Options\HttpOptions;
 use r\Options\TableCreateOptions;
 use r\Options\TableOptions;
 use r\Ordering\Asc;
@@ -194,7 +196,7 @@ function table(string $tableName, TableOptions $options = new TableOptions()): T
  *   - old_val: always null.
  *   - new_val: the table’s new config value.
  * If a table with the same name already exists, the command throws ReqlOpFailedError.
- *
+ * @see https://rethinkdb.com/api/javascript/table_create/
  * @param string $tableName The table name to create
  * @param TableCreateOptions $options
  * @return TableCreate
@@ -214,7 +216,7 @@ function tableCreate(string $tableName, TableCreateOptions $options = new TableC
  *   - old_val: the dropped table’s config value.
  *   - new_val: always null.
  * If the given table does not exist in the database, the command throws ReqlRuntimeError.
- *
+ * @see https://rethinkdb.com/api/javascript/table_drop
  * @param string $tableName The table to drop
  * @return TableDrop
  */
@@ -223,29 +225,79 @@ function tableDrop(string $tableName): TableDrop
     return new TableDrop(null, $tableName);
 }
 
+/**
+ * List all table names in a database. The result is a list of strings.
+ * @see https://rethinkdb.com/api/javascript/table_list
+ * @return TableList
+ */
 function tableList(): TableList
 {
     return new TableList(null);
 }
 
+/**
+ * Call an anonymous function using return values from other ReQL commands or queries as arguments.
+ *
+ * The last argument to do (or, in some forms, the only argument) is an expression or an anonymous function which
+ * receives values from either the previous arguments or from prefixed commands chained before do. The do command is
+ * essentially a single-element map, letting you map a function over just one document. This allows you to bind a query
+ * result to a local variable within the scope of do, letting you compute the result just once and reuse it in a complex
+ * expression or in a series of ReQL commands.
+ *
+ * Arguments passed to the do function must be basic data types, and cannot be streams or selections. (Read about ReQL
+ * data types.) While the arguments will all be evaluated before the function is executed, they may be evaluated in any
+ * order, so their values should not be dependent on one another. The type of do’s result is the type of the value
+ * returned from the function or last expression.
+ * @see https://rethinkdb.com/api/javascript/do/
+ * @param array $args
+ * @param Query|callable $inExpr
+ * @return RDo
+ */
 function rDo(array $args, Query|callable $inExpr): RDo
 {
     return new RDo($args, $inExpr);
 }
 
+/**
+ * r.args is a special term that’s used to splice an array of arguments into another term. This is useful when you want
+ * to call a variadic term such as getAll with a set of arguments produced at runtime.
+ *
+ * This is analogous to using apply in JavaScript. (However, note that args evaluates all its arguments before passing
+ * them into the parent term, even if the parent term otherwise allows lazy evaluation.)
+ * @see https://rethinkdb.com/api/javascript/args
+ * @param array $args
+ * @return Args
+ */
 function args(array $args): Args
 {
     return new Args($args);
 }
 
-function branch(Query $test, $trueBranch, $falseBranch): Branch
+/**
+ * Perform a branching conditional equivalent to if-then-else.
+ *
+ * The branch command takes 2n+1 arguments: pairs of conditional expressions and commands to be executed if the
+ * conditionals return any value but false or null (i.e., “truthy” values), with a final “else” command to be evaluated
+ * if all of the conditionals are false or null.
+ * @see https://rethinkdb.com/api/javascript/branch
+ * @param Query $test
+ * @param ...$branches
+ * @return Branch
+ */
+function branch(Query $test, ...$branches): Branch
 {
-    return new Branch($test, $trueBranch, $falseBranch);
+    return new Branch($test, ...$branches);
 }
 
-function row($attribute = null): GetField|ImplicitVar
+/**
+ * Returns the currently visited document.
+ * @see https://rethinkdb.com/api/javascript/row/
+ * @param string|Query|null $attribute Shortcut for row()(attribute)
+ * @return GetField|ImplicitVar
+ */
+function row(string|Query|null $attribute = null): GetField|ImplicitVar
 {
-    if (isset($attribute)) {
+    if (null !== $attribute) {
         // A shortcut to do row()($attribute)
         return new GetField(new ImplicitVar(), $attribute);
     } else {
@@ -253,19 +305,44 @@ function row($attribute = null): GetField|ImplicitVar
     }
 }
 
+/**
+ * Create a javascript expression.
+ *
+ * timeout is the number of seconds before r.js times out. The default value is 5 seconds.
+ *
+ * Whenever possible, you should use native ReQL commands rather than r.js for better performance.
+ * @see https://rethinkdb.com/api/javascript/js/
+ * @param string $code The js code to execute
+ * @param int|float|null $timeout The timeout in seconds
+ * @return Js
+ */
 function js(string $code, int|null|float $timeout = null): Js
 {
     return new Js($code, $timeout);
 }
 
-function error(string $message = null): Error
+/**
+ * Throw a runtime error. If called with no arguments inside the second argument to default, re-throw the current error.
+ * @see https://rethinkdb.com/api/javascript/error/
+ * @param string|null $message
+ * @return Error
+ */
+function error(string|null $message = null): Error
 {
     return new Error($message);
 }
 
-function expr(mixed $obj
+/**
+ * Construct a ReQL JSON object from a native object.
+ *
+ * @param mixed $obj
+ * @return MakeObject|ObjectDatum|Iso8601|MakeArray|StringDatum|BoolDatum|NumberDatum|Query|NullDatum|ArrayDatum
+ * @throws RqlDriverError
+ */
+function expr(
+    mixed $obj
 ): MakeObject|ObjectDatum|Iso8601|MakeArray|StringDatum|BoolDatum|NumberDatum|Query|NullDatum|ArrayDatum {
-    if ((is_object($obj) && is_subclass_of($obj, Query::class))) {
+    if ($obj instanceof Query) {
         return $obj;
     }
 
@@ -273,6 +350,13 @@ function expr(mixed $obj
     return $dc->nativeToDatum($obj);
 }
 
+/**
+ * Encapsulate binary data within a query.
+ * @see https://rethinkdb.com/api/javascript/binary/
+ * @param string $str
+ * @return Datum
+ * @throws RqlDriverError
+ */
 function binary(string $str): Datum
 {
     $encodedStr = base64_encode($str);
@@ -285,32 +369,70 @@ function binary(string $str): Datum
     return $dc->nativeToDatum($pseudo);
 }
 
+/**
+ * @see https://rethinkdb.com/api/javascript/order_by/
+ *
+ * @param callable|string $attribute
+ * @return Desc
+ */
 function desc(callable|string $attribute): Desc
 {
     return new Desc($attribute);
 }
 
+/**
+ * @see https://rethinkdb.com/api/javascript/order_by/
+ * @param callable|string $attribute
+ * @return Asc
+ */
 function asc(callable|string $attribute): Asc
 {
     return new Asc($attribute);
 }
 
-function json(array $json): Json
+/**
+ * Parse a JSON string on the server.
+ * @see https://rethinkdb.com/api/javascript/json/
+ * @param string|Query $json
+ * @return Json
+ */
+function json(string|Query $json): Json
 {
     return new Json($json);
 }
 
-function http(string $url, $opts = null): Http
+/**
+ * Retrieve data from the specified URL over HTTP. The return type depends on the resultFormat option, which checks the
+ * Content-Type of the response by default. Make sure that you never use this command for user provided URLs.
+ * @see https://rethinkdb.com/api/javascript/http/
+ * @param string $url
+ * @param HttpOptions $opts
+ * @return Http
+ */
+function http(string $url, HttpOptions $opts = new HttpOptions()): Http
 {
     return new Http($url, $opts);
 }
 
-function rObject($object): RObject
+/**
+ * Creates an object from a list of key-value pairs, where the keys must be strings. r.object(A, B, C, D) is equivalent
+ * to r.expr([[A, B], [C, D]]).coerceTo('OBJECT').
+ * @see https://rethinkdb.com/api/javascript/object/
+ * @param mixed ...$object
+ * @return RObject
+ */
+function rObject(mixed ...$object): RObject
 {
-    return new RObject($object);
+    return new RObject(...$object);
 }
 
-// r\literal can accept 0 or 1 arguments
+/**
+ * Replace an object in a field instead of merging it with an existing object in a merge or update operation. Using
+ * literal with no arguments in a merge or update operation will remove the corresponding field.
+ * @see https://rethinkdb.com/api/javascript/literal/
+ * @param ...$args
+ * @return Literal
+ */
 function literal(...$args): Literal
 {
     if (count($args) == 0) {
@@ -320,22 +442,53 @@ function literal(...$args): Literal
     }
 }
 
-function add($expr1, $expr2): Add
+/**
+ * Sum two or more numbers, or concatenate two or more strings or arrays.
+ *
+ * The add command can be called in either prefix or infix form; both forms are equivalent. Note that ReQL will not
+ * perform type coercion. You cannot, for example, add a string and a number together.
+ * @see https://rethinkdb.com/api/javascript/add/
+ * @param string|int|float|array|Query $expr1
+ * @param string|int|float|array|Query $expr2
+ * @return Add
+ */
+function add(string|int|float|array|Query $expr1, string|int|float|array|Query $expr2): Add
 {
     return new Add($expr1, $expr2);
 }
 
-function sub($expr1, $expr2): Sub
+/**
+ * Subtract two numbers.
+ * @see https://rethinkdb.com/api/javascript/sub/
+ * @param int|float|Query $expr1
+ * @param int|float|Query $expr2
+ * @return Sub
+ */
+function sub(int|float|Query $expr1, int|float|Query $expr2): Sub
 {
     return new Sub($expr1, $expr2);
 }
 
-function mul($expr1, $expr2): Mul
+/**
+ * Multiply two numbers, or make a periodic array.
+ * @see https://rethinkdb.com/api/javascript/mul/
+ * @param int|float|Query $expr1
+ * @param int|float|Query $expr2
+ * @return Mul
+ */
+function mul(int|float|Query $expr1, int|float|Query $expr2): Mul
 {
     return new Mul($expr1, $expr2);
 }
 
-function div($expr1, $expr2): Div
+/**
+ * Divide two numbers.
+ * @see https://rethinkdb.com/api/javascript/div/
+ * @param int|float|Query $expr1
+ * @param int|float|Query $expr2
+ * @return Div
+ */
+function div(int|float|Query $expr1, int|float|Query $expr2): Div
 {
     return new Div($expr1, $expr2);
 }

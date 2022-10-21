@@ -2,18 +2,20 @@
 
 namespace r\Queries\Control;
 
-use r\ValuedQuery\ValuedQuery;
+use r\Options\HttpOptions;
 use r\ProtocolBuffer\TermTermType;
+use r\ValuedQuery\ValuedQuery;
 
 class Http extends ValuedQuery
 {
-    public function __construct($url, $opts = null)
+    public function __construct(string $url, HttpOptions $opts = new HttpOptions())
     {
         $this->setPositionalArg(0, $this->nativeToDatum($url));
-        if (isset($opts)) {
-            foreach ($opts as $opt => $val) {
-                $this->setOptionalArg($opt, $this->nativeToDatum($val));
+        foreach ($opts as $opt => $val) {
+            if ($val === null) {
+                continue;
             }
+            $this->setOptionalArg($opt, $this->nativeToDatum($val));
         }
     }
 

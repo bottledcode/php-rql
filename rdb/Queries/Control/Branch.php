@@ -2,20 +2,23 @@
 
 namespace r\Queries\Control;
 
+use r\ProtocolBuffer\TermTermType;
 use r\Query;
 use r\ValuedQuery\ValuedQuery;
-use r\ProtocolBuffer\TermTermType;
 
 class Branch extends ValuedQuery
 {
-    public function __construct(Query $test, $trueBranch, $falseBranch)
+    public function __construct(Query $test, Query|callable ...$branches)
     {
-        $trueBranch = $this->nativeToDatumOrFunction($trueBranch, false);
-        $falseBranch = $this->nativeToDatumOrFunction($falseBranch, false);
-
         $this->setPositionalArg(0, $test);
-        $this->setPositionalArg(1, $trueBranch);
-        $this->setPositionalArg(2, $falseBranch);
+
+        if (!array_is_list($branches)) {
+            $branches = array_values($branches);
+        }
+
+        foreach ($branches as $i => $branch) {
+            $this->setPositionalArg($i + 1, $this->nativeToDatumOrFunction($branch, false));
+        }
     }
 
     protected function getTermType(): TermTermType

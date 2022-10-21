@@ -3,14 +3,15 @@
 namespace r\Queries\Manipulation;
 
 use r\Datum\StringDatum;
+use r\Query;
 use r\ValuedQuery\ValuedQuery;
 use r\ProtocolBuffer\TermTermType;
 
 class GetField extends ValuedQuery
 {
-    public function __construct(ValuedQuery $sequence, $attribute)
+    public function __construct(ValuedQuery $sequence, string|Query $attribute)
     {
-        if (!(is_object($attribute) && is_subclass_of($attribute, "\\r\\Query"))) {
+        if (!$attribute instanceof Query) {
             $attribute = new StringDatum($attribute);
         }
 

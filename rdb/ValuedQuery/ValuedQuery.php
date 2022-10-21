@@ -367,22 +367,49 @@ abstract class ValuedQuery extends Query
         return new Values($this);
     }
 
-    public function add($other): Add
+    /**
+     * Sum two or more numbers, or concatenate two or more strings or arrays.
+     *
+     * The add command can be called in either prefix or infix form; both forms are equivalent. Note that ReQL will not
+     * perform type coercion. You cannot, for example, add a string and a number together.
+     * @see https://rethinkdb.com/api/javascript/add/
+     * @param string|int|float|Query $other
+     * @return Add
+     */
+    public function add(string|int|float|Query $other): Add
     {
         return new Add($this, $other);
     }
 
-    public function sub($other): Sub
+    /**
+     * Subtract two numbers.
+     * @see https://rethinkdb.com/api/javascript/sub/
+     * @param int|float|Query|\DateTimeInterface $other
+     * @return Sub
+     */
+    public function sub(int|float|Query|\DateTimeInterface $other): Sub
     {
         return new Sub($this, $other);
     }
 
-    public function mul($other): Mul
+    /**
+     * Multiply two numbers, or make a periodic array.
+     * @see https://rethinkdb.com/api/javascript/mul/
+     * @param int|float|Query $other
+     * @return Mul
+     */
+    public function mul(int|float|Query $other): Mul
     {
         return new Mul($this, $other);
     }
 
-    public function div($other): Div
+    /**
+     * Divide two numbers.
+     * @see https://rethinkdb.com/api/javascript/div/
+     * @param int|float|Query $other
+     * @return Div
+     */
+    public function div(int|float|Query $other): Div
     {
         return new Div($this, $other);
     }

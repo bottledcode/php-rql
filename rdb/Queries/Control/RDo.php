@@ -14,12 +14,11 @@ class RDo extends ValuedQuery
         $this->setPositionalArg(0, $inExpr);
 
         $i = 1;
-        foreach ($args as &$arg) {
+        foreach ($args as $arg) {
             if (!(is_object($arg) && is_subclass_of($arg, Query::class))) {
                 $arg = $this->nativeToDatum($arg);
             }
             $this->setPositionalArg($i++, $arg);
-            unset($arg);
         }
     }
 

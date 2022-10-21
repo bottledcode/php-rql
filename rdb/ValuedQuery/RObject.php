@@ -8,11 +8,8 @@ use r\ProtocolBuffer\TermTermType;
 
 class RObject extends ValuedQuery
 {
-    public function __construct($object)
+    public function __construct(mixed ...$object)
     {
-        if (!is_array($object)) {
-            throw new RqlDriverError("Argument to r\\Object must be an array.");
-        }
         $i = 0;
         foreach ($object as $v) {
             $this->setPositionalArg($i++, $this->nativeToDatum($v));
