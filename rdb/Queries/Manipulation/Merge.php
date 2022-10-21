@@ -2,17 +2,17 @@
 
 namespace r\Queries\Manipulation;
 
-use r\ValuedQuery\ValuedQuery;
 use r\ProtocolBuffer\TermTermType;
+use r\ValuedQuery\ValuedQuery;
 
 class Merge extends ValuedQuery
 {
-    public function __construct(ValuedQuery $sequence, $other)
+    public function __construct(ValuedQuery $sequence, object|callable|array ...$other)
     {
-        $other = $this->nativeToDatumOrFunction($other);
-
         $this->setPositionalArg(0, $sequence);
-        $this->setPositionalArg(1, $other);
+        foreach ($other as $i => $value) {
+            $this->setPositionalArg($i + 1, $this->nativeToDatumOrFunction($value));
+        }
     }
 
     protected function getTermType(): TermTermType

@@ -2,25 +2,32 @@
 
 namespace r\Queries\Joins;
 
-use r\ValuedQuery\ValuedQuery;
-use r\Exceptions\RqlDriverError;
+use r\Options\EqJoinOptions;
 use r\ProtocolBuffer\TermTermType;
+use r\Query;
+use r\ValuedQuery\ValuedQuery;
 
 class EqJoin extends ValuedQuery
 {
-    public function __construct(ValuedQuery $sequence, $attribute, ValuedQuery $otherSequence, $opts = null)
-    {
-        $attribute = $this->nativeToDatumOrFunction($attribute);
+    public function __construct(
+        ValuedQuery $sequence,
+        string|callable|Query $leftFieldOrFunction,
+        ValuedQuery $otherSequence,
+        EqJoinOptions $opts = new EqJoinOptions()
+    ) {
+        $attribute = $this->nativeToDatumOrFunction($leftFieldOrFunction);
         $this->setPositionalArg(0, $sequence);
         $this->setPositionalArg(1, $attribute);
         $this->setPositionalArg(2, $otherSequence);
-        if (isset($opts)) {
-            if (!is_array($opts)) {
-                throw new RqlDriverError("opts argument must be an array");
+
+        foreach ($opts as $k => $v) {
+            if ($v === null) {
+                continue;
             }
-            foreach ($opts as $k => $v) {
-                $this->setOptionalArg($k, $this->nativeToDatum($v));
+            if ($v instanceof \BackedEnum) {
+                $v = $v->value;
             }
+            $this->setOptionalArg($k, $this->nativeToDatum($v));
         }
     }
 

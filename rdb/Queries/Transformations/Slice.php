@@ -2,34 +2,31 @@
 
 namespace r\Queries\Transformations;
 
-use r\ValuedQuery\ValuedQuery;
 use r\Datum\NumberDatum;
 use r\Datum\StringDatum;
-use r\Exceptions\RqlDriverError;
+use r\Options\SliceOptions;
 use r\ProtocolBuffer\TermTermType;
+use r\Query;
+use r\ValuedQuery\ValuedQuery;
 
 class Slice extends ValuedQuery
 {
-    public function __construct(ValuedQuery $sequence, $startIndex, $endIndex = null, $opts = null)
-    {
-        $startIndex = $this->nativeToDatum($startIndex);
-        if (isset($endIndex)) {
-            $endIndex = $this->nativeToDatum($endIndex);
-        }
-
+    public function __construct(
+        ValuedQuery $sequence,
+        int|Query $startIndex,
+        int|Query|null $endIndex = null,
+        SliceOptions $opts = new SliceOptions()
+    ) {
         $this->setPositionalArg(0, $sequence);
-        $this->setPositionalArg(1, $startIndex);
+        $this->setPositionalArg(1, $this->nativeToDatum($startIndex));
         if (isset($endIndex)) {
-            $this->setPositionalArg(2, $endIndex);
+            $this->setPositionalArg(2, $this->nativeToDatum($endIndex));
         } else {
             $this->setPositionalArg(2, new NumberDatum(-1));
             $this->setOptionalArg('right_bound', new StringDatum('closed'));
         }
-        if (isset($opts)) {
-            if (!is_array($opts)) {
-                throw new RqlDriverError("opts argument must be an array");
-            }
-            foreach ($opts as $k => $v) {
+        foreach ($opts as $k => $v) {
+            if ($v !== null) {
                 $this->setOptionalArg($k, $this->nativeToDatum($v));
             }
         }

@@ -7,15 +7,11 @@ use r\ProtocolBuffer\TermTermType;
 
 class Avg extends ValuedQuery
 {
-    public function __construct(ValuedQuery $sequence, $attribute = null)
+    public function __construct(ValuedQuery $sequence, callable|null|string $attribute = null)
     {
-        if (isset($attribute)) {
-            $attribute = $this->nativeToDatumOrFunction($attribute);
-        }
-
         $this->setPositionalArg(0, $sequence);
         if (isset($attribute)) {
-            $this->setPositionalArg(1, $attribute);
+            $this->setPositionalArg(1, $this->nativeToDatumOrFunction($attribute));
         }
     }
 

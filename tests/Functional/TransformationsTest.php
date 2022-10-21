@@ -3,6 +3,7 @@
 namespace r\Tests\Functional;
 
 use r\Datum\ArrayDatum;
+use r\Options\SliceOptions;
 use r\Options\UnionOptions;
 use r\Tests\TestCase;
 
@@ -27,8 +28,7 @@ class TransformationsTest extends TestCase
 
     public function testOrderbyMap()
     {
-        $res = $this->db()->table('marvel')->orderBy(
-            array('combatPower', 'compassionPower')
+        $res = $this->db()->table('marvel')->orderBy( 'combatPower', 'compassionPower'
         )->map(
             \r\row('superhero')
         )->run($this->conn);
@@ -39,7 +39,7 @@ class TransformationsTest extends TestCase
     public function testOrderbyMapDesc()
     {
         $res = $this->db()->table('marvel')->orderBy(
-            array(\r\Desc('combatPower'), \r\Desc('compassionPower'))
+            \r\Desc('combatPower'), \r\Desc('compassionPower')
         )->map(
             \r\row('superhero')
         )->run($this->conn);
@@ -50,7 +50,7 @@ class TransformationsTest extends TestCase
     public function testOrderbyMapAsc()
     {
         $res = $this->db()->table('marvel')->orderBy(
-            array(\r\Asc('combatPower'), \r\Asc('compassionPower'))
+            \r\Asc('combatPower'), \r\Asc('compassionPower')
         )->map(
             \r\row('superhero')
         )->run($this->conn);
@@ -61,7 +61,7 @@ class TransformationsTest extends TestCase
     public function testOrderbyMapRow()
     {
         $res = $this->db()->table('marvel')->orderBy(
-            array(\r\Asc('combatPower'), \r\Asc('compassionPower'))
+            \r\Asc('combatPower'), \r\Asc('compassionPower')
         )->map(
             \r\row('superhero')
         )->run($this->conn);
@@ -72,7 +72,7 @@ class TransformationsTest extends TestCase
     public function testOrderbyMapAscDesc()
     {
         $res = $this->db()->table('marvel')->orderBy(
-            array(\r\Asc(\r\row('combatPower')), \r\Desc(\r\row('compassionPower')))
+            \r\Asc(\r\row('combatPower')), \r\Desc(\r\row('compassionPower'))
         )->map(
             \r\row('superhero')
         )->run($this->conn);
@@ -83,14 +83,12 @@ class TransformationsTest extends TestCase
     public function testOrderbyCallback()
     {
         $res = $this->db()->table('marvel')->orderBy(
-            array(
                 function ($x) {
                     return $x('combatPower');
                 },
                 function ($x) {
                     return $x('compassionPower');
                 }
-            )
         )->map(
             \r\row('superhero')
         )->run($this->conn);
@@ -101,14 +99,12 @@ class TransformationsTest extends TestCase
     public function testOrderbyAscDescCallback()
     {
         $res = $this->db()->table('marvel')->orderBy(
-            array(
                 \r\Asc(function ($x) {
                     return $x('combatPower');
                 }),
                 \r\Desc(function ($x) {
                     return $x('compassionPower');
                 })
-            )
         )->map(
             \r\row('superhero')
         )->run($this->conn);
@@ -197,7 +193,7 @@ class TransformationsTest extends TestCase
     {
         $res = $this->db()->table('marvel')
             ->orderBy('superhero')
-            ->slice(1, 1, array('right_bound' => 'closed'))
+            ->slice(1, 1, new SliceOptions(right_bound: 'closed'))
             ->map(\r\row('superhero'))
             ->run($this->conn);
 

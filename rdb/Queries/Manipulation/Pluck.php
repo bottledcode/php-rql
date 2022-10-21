@@ -7,7 +7,7 @@ use r\ProtocolBuffer\TermTermType;
 
 class Pluck extends ValuedQuery
 {
-    public function __construct(ValuedQuery $sequence, $attributes)
+    public function __construct(ValuedQuery $sequence, array|object|callable|string...$attributes)
     {
         // It would appear that the new pattern-matching syntax in 1.7 would make this
         // a little cumbersome. The problem seems to be that we must distinguish
@@ -17,9 +17,7 @@ class Pluck extends ValuedQuery
         // ArrayDatum, which will be interpreted correctly. So we can just always
         // interpret arrays as patterns.
 
-        if (!is_array($attributes)) {
-            $attributes = array($attributes);
-        }
+
         $attributes = $this->nativeToDatum($attributes);
 
         $this->setPositionalArg(0, $sequence);

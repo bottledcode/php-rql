@@ -2,17 +2,16 @@
 
 namespace r\Queries\Transformations;
 
+use r\Query;
 use r\ValuedQuery\ValuedQuery;
 use r\ProtocolBuffer\TermTermType;
 
 class Limit extends ValuedQuery
 {
-    public function __construct(ValuedQuery $sequence, $n)
+    public function __construct(ValuedQuery $sequence, int|Query $n)
     {
-        $n = $this->nativeToDatum($n);
-
         $this->setPositionalArg(0, $sequence);
-        $this->setPositionalArg(1, $n);
+        $this->setPositionalArg(1, $this->nativeToDatum($n));
     }
 
     protected function getTermType(): TermTermType

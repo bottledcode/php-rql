@@ -7,7 +7,7 @@ use r\ProtocolBuffer\TermTermType;
 
 class OffsetsOf extends ValuedQuery
 {
-    public function __construct(ValuedQuery $sequence, $predicate)
+    public function __construct(ValuedQuery $sequence, mixed $predicate)
     {
         $predicate = $this->nativeToDatumOrFunction($predicate);
 

@@ -2,6 +2,7 @@
 
 namespace r\Tests\Functional;
 
+use r\Options\EqJoinOptions;
 use r\Tests\TestCase;
 
 class JoinTest extends TestCase
@@ -22,16 +23,16 @@ class JoinTest extends TestCase
     {
         $expected = array(
             array(
-                'left'  => array('id' => 1,   'other' => 'a'),
-                'right' => array('id' => 'a', 'other' => 1 )
+                'left' => array('id' => 1, 'other' => 'a'),
+                'right' => array('id' => 'a', 'other' => 1)
             ),
             array(
-                'left'  => array('id' => 2,   'other' => 'a'),
-                'right' => array('id' => 'a', 'other' => 1 )
+                'left' => array('id' => 2, 'other' => 'a'),
+                'right' => array('id' => 'a', 'other' => 1)
             ),
             array(
-                'left'  => array('id' => 3,   'other' => 'b'),
-                'right' => array('id' => 'b', 'other' => 1 )
+                'left' => array('id' => 3, 'other' => 'b'),
+                'right' => array('id' => 'b', 'other' => 1)
             )
         );
 
@@ -47,16 +48,26 @@ class JoinTest extends TestCase
         $this->assertEquals($expected, $this->orderArrayByLeftAndRightId($res));
     }
 
+    protected function orderArrayByLeftAndRightId($data)
+    {
+        $data = $this->toArray($data->toArray());
+        usort($data, function ($a, $b) {
+            return $a['left']['id'] <=> $b['left']['id'];
+        });
+
+        return $data;
+    }
+
     public function testInnerJoinT2()
     {
         $expected = array(
             array(
-                'right' => array('id' => 1,   'other' => 'a'),
-                'left'  => array('id' => 'a', 'other' => 1 )
+                'right' => array('id' => 1, 'other' => 'a'),
+                'left' => array('id' => 'a', 'other' => 1)
             ),
             array(
-                'right' => array('id' => 1,   'other' => 'a'),
-                'left'  => array('id' => 'b', 'other' => 1 )
+                'right' => array('id' => 1, 'other' => 'a'),
+                'left' => array('id' => 'b', 'other' => 1)
             )
         );
 
@@ -76,16 +87,16 @@ class JoinTest extends TestCase
     {
         $expected = array(
             array(
-                'left'  => array('id' => 1,   'other' => 'a'),
-                'right' => array('id' => 'a', 'other' => 1 )
+                'left' => array('id' => 1, 'other' => 'a'),
+                'right' => array('id' => 'a', 'other' => 1)
             ),
             array(
-                'left'  => array('id' => 2,   'other' => 'a'),
-                'right' => array('id' => 'a', 'other' => 1 )
+                'left' => array('id' => 2, 'other' => 'a'),
+                'right' => array('id' => 'a', 'other' => 1)
             ),
             array(
-                'left'  => array('id' => 3,   'other' => 'b'),
-                'right' => array('id' => 'b', 'other' => 1 )
+                'left' => array('id' => 3, 'other' => 'b'),
+                'right' => array('id' => 'b', 'other' => 1)
             )
         );
 
@@ -106,13 +117,13 @@ class JoinTest extends TestCase
         $expected = array(
             array(
                 'right' => array('id' => 1, 'other' => 'a'),
-                'left' => array('id' => 'a', 'other' => 1 )
+                'left' => array('id' => 'a', 'other' => 1)
             ),
             array(
                 'right' => array('id' => 1, 'other' => 'a'),
-                'left' => array('id' => 'b', 'other' => 1 )
+                'left' => array('id' => 'b', 'other' => 1)
             ),
-            array('left' => array('id' => 'c', 'other' => 5 ))
+            array('left' => array('id' => 'c', 'other' => 5))
         );
 
         $res = $this->db()->table('t2')
@@ -132,15 +143,15 @@ class JoinTest extends TestCase
         $expected = array(
             array(
                 'left' => array('id' => 1, 'other' => 'a'),
-                'right' => array('id' => 'a', 'other' => 1 )
+                'right' => array('id' => 'a', 'other' => 1)
             ),
             array(
                 'left' => array('id' => 2, 'other' => 'a'),
-                'right' => array('id' => 'a', 'other' => 1 )
+                'right' => array('id' => 'a', 'other' => 1)
             ),
             array(
                 'left' => array('id' => 3, 'other' => 'b'),
-                'right' => array('id' => 'b', 'other' => 1 )
+                'right' => array('id' => 'b', 'other' => 1)
             )
         );
 
@@ -156,16 +167,16 @@ class JoinTest extends TestCase
         $expected = array(
             array(
                 'left' => array('id' => 1, 'other' => 'a'),
-                'right' => array('id' => 'a', 'other' => 1 )
+                'right' => array('id' => 'a', 'other' => 1)
             ),
             array(
                 'left' => array('id' => 1, 'other' => 'a'),
-                'right' => array('id' => 'b', 'other' => 1 )
+                'right' => array('id' => 'b', 'other' => 1)
             ),
         );
 
         $res = $this->db()->table('t1')
-            ->eqJoin('id', $this->db()->table('t2'), array('index' => 'other'))
+            ->eqJoin('id', $this->db()->table('t2'), new EqJoinOptions(index: 'other'))
             ->run($this->conn);
 
         $this->assertEquals($expected, $this->orderArrayByLeftAndRightId($res));
@@ -175,16 +186,16 @@ class JoinTest extends TestCase
     {
         $expected = array(
             array(
-                'left' => array('id'  => 1, 'other'   => 'a'),
-                'right' => array('id' => 'a', 'other' => 1 )
+                'left' => array('id' => 1, 'other' => 'a'),
+                'right' => array('id' => 'a', 'other' => 1)
             ),
             array(
-                'left' => array('id'  => 2, 'other'   => 'a'),
-                'right' => array('id' => 'a', 'other' => 1 )
+                'left' => array('id' => 2, 'other' => 'a'),
+                'right' => array('id' => 'a', 'other' => 1)
             ),
             array(
-                'left' => array('id'  => 3, 'other'   => 'b'),
-                'right' => array('id' => 'b', 'other' => 1 )
+                'left' => array('id' => 3, 'other' => 'b'),
+                'right' => array('id' => 'b', 'other' => 1)
             )
         );
 
@@ -200,26 +211,16 @@ class JoinTest extends TestCase
     public function testEqJoinZip()
     {
         $expected = array(
-            array('id' => 'a', 'other' => 1 ),
-            array('id' => 'b', 'other' => 1 )
+            array('id' => 'a', 'other' => 1),
+            array('id' => 'b', 'other' => 1)
         );
 
         $res = $this->db()->table('t1')
-            ->eqJoin('id', $this->db()->table('t2'), array('index' => 'other'))
+            ->eqJoin('id', $this->db()->table('t2'), new EqJoinOptions(index: 'other'))
             ->zip()
             ->run($this->conn);
 
         $this->assertEquals($expected, $this->orderArrayById($res));
-    }
-
-    protected function orderArrayByLeftAndRightId($data)
-    {
-        $data = $this->toArray($data->toArray());
-        usort($data, function ($a, $b) {
-            return $a['left']['id'] <=> $b['left']['id'];
-        });
-
-        return $data;
     }
 
     protected function orderArrayById($data)

@@ -7,12 +7,9 @@ use r\ProtocolBuffer\TermTermType;
 
 class Without extends ValuedQuery
 {
-    public function __construct(ValuedQuery $sequence, $attributes)
+    public function __construct(ValuedQuery $sequence, array|object|callable|string ...$attributes)
     {
         // See comment above about pluck. The same applies here.
-        if (!is_array($attributes)) {
-            $attributes = array($attributes);
-        }
         $attributes = $this->nativeToDatum($attributes);
 
         $this->setPositionalArg(0, $sequence);

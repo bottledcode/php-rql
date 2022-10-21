@@ -2,22 +2,20 @@
 
 namespace r\Queries\Aggregations;
 
-use r\ValuedQuery\ValuedQuery;
 use r\ProtocolBuffer\TermTermType;
+use r\ValuedQuery\ValuedQuery;
 
 class Min extends ValuedQuery
 {
-    public function __construct(ValuedQuery $sequence, $attributeOrOpts = null)
+    public function __construct(ValuedQuery $sequence, array $attributeOrOpts)
     {
         $this->setPositionalArg(0, $sequence);
-        if (isset($attributeOrOpts)) {
-            if (is_array($attributeOrOpts)) {
-                foreach ($attributeOrOpts as $opt => $val) {
-                    $this->setOptionalArg($opt, $this->nativeToDatum($val));
-                }
+        $i = 1;
+        foreach ($attributeOrOpts as $key => $value) {
+            if (is_string($key)) {
+                $this->setOptionalArg($key, $this->nativeToDatum($value));
             } else {
-                $attribute = $this->nativeToDatumOrFunction($attributeOrOpts);
-                $this->setPositionalArg(1, $attribute);
+                $this->setPositionalArg($i++, $this->nativeToDatumOrFunction($value));
             }
         }
     }

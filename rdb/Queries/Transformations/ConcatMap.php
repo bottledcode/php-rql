@@ -2,12 +2,13 @@
 
 namespace r\Queries\Transformations;
 
+use r\Query;
 use r\ValuedQuery\ValuedQuery;
 use r\ProtocolBuffer\TermTermType;
 
 class ConcatMap extends ValuedQuery
 {
-    public function __construct(ValuedQuery $sequence, $mappingFunction)
+    public function __construct(ValuedQuery $sequence, callable|Query $mappingFunction)
     {
         $mappingFunction = $this->nativeToFunction($mappingFunction);
 

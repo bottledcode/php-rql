@@ -5,6 +5,9 @@ namespace r\ValuedQuery;
 use r\Options\BetweenOptions;
 use r\Options\DeleteOptions;
 use r\Options\DistanceOptions;
+use r\Options\EqJoinOptions;
+use r\Options\FoldOptions;
+use r\Options\SliceOptions;
 use r\Options\UnionOptions;
 use r\Options\UpdateOptions;
 use r\Queries\Aggregations\Avg;
@@ -203,31 +206,97 @@ abstract class ValuedQuery extends Query
         return new Filter($this, $predicate, $default);
     }
 
-    public function innerJoin(ValuedQuery $otherSequence, $predicate): InnerJoin
+    /**
+     * Returns an inner join of two sequences.
+     *
+     * The returned sequence represents an intersection of the left-hand sequence and the right-hand sequence: each row
+     * of the left-hand sequence will be compared with each row of the right-hand sequence to find all pairs of rows
+     * which satisfy the predicate. Each matched pair of rows of both sequences are combined into a result row. In most
+     * cases, you will want to follow the join with zip to combine the left and right results.
+     *
+     * Note that innerJoin is slower and much less efficient than using eqJoin or concatMap with getAll. You should
+     * avoid using innerJoin in commands when possible.
+     * @param ValuedQuery $otherSequence
+     * @param callable|Query $predicate
+     * @return InnerJoin
+     */
+    public function innerJoin(ValuedQuery $otherSequence, callable|Query $predicate): InnerJoin
     {
         return new InnerJoin($this, $otherSequence, $predicate);
     }
 
-    public function outerJoin(ValuedQuery $otherSequence, $predicate): OuterJoin
+    /**
+     * Returns a left outer join of two sequences. The returned sequence represents a union of the left-hand sequence
+     * and the right-hand sequence: all documents in the left-hand sequence will be returned, each matched with a
+     * document in the right-hand sequence if one satisfies the predicate condition. In most cases, you will want to
+     * follow the join with zip to combine the left and right results.
+     *
+     * Note that outerJoin is slower and much less efficient than using concatMap with getAll. You should avoid using
+     * outerJoin in commands when possible.
+     * @param ValuedQuery $otherSequence
+     * @param callable|Query $predicate
+     * @return OuterJoin
+     */
+    public function outerJoin(ValuedQuery $otherSequence, callable|Query $predicate): OuterJoin
     {
         return new OuterJoin($this, $otherSequence, $predicate);
     }
 
-    public function eqJoin($attribute, ValuedQuery $otherSequence, $opts = null): EqJoin
-    {
-        return new EqJoin($this, $attribute, $otherSequence, $opts);
+    /**
+     * Join tables using a field or function on the left-hand sequence matching primary keys or secondary indexes on
+     * the right-hand table. eqJoin is more efficient than other ReQL join types, and operates much faster. Documents
+     * in the result set consist of pairs of left-hand and right-hand documents, matched when the field on the
+     * left-hand side exists and is non-null and an entry with that field’s value exists in the specified index on the
+     * right-hand side.
+     *
+     * The result set of eqJoin is a stream or array of objects. Each object in the returned set will be an object of
+     * the form { left: <left-document>, right: <right-document> }, where the values of left and right will be the
+     * joined documents. Use the zip command to merge the left and right fields together.
+     *
+     * The results from eqJoin are, by default, not ordered. The optional ordered: true parameter will cause eqJoin to
+     * order the output based on the left side input stream. (If there are multiple matches on the right side for a
+     * document on the left side, their order is not guaranteed even if ordered is true.) Requiring ordered results
+     * can significantly slow down eqJoin, and in many circumstances this ordering will not be required. (See the first
+     * example, in which ordered results are obtained by using orderBy after eqJoin.)
+     * @param string|callable|Query $leftFieldOrFunction
+     * @param ValuedQuery $otherSequence
+     * @param EqJoinOptions $opts
+     * @return EqJoin
+     */
+    public function eqJoin(
+        string|callable|Query $leftFieldOrFunction,
+        ValuedQuery $otherSequence,
+        EqJoinOptions $opts = new EqJoinOptions()
+    ): EqJoin {
+        return new EqJoin($this, $leftFieldOrFunction, $otherSequence, $opts);
     }
 
+    /**
+     * Used to ‘zip’ up the result of a join by merging the ‘right’ fields into ‘left’ fields of each member of the
+     * sequence.
+     * @return Zip
+     */
     public function zip(): Zip
     {
         return new Zip($this);
     }
 
-    public function withFields($attributes): WithFields
+    /**
+     * Plucks one or more attributes from a sequence of objects, filtering out any objects in the sequence that do not
+     * have the specified fields. Functionally, this is identical to hasFields followed by pluck on a sequence.
+     * @param array|string|object ...$fields
+     * @return WithFields
+     */
+    public function withFields(array|string|object ...$fields): WithFields
     {
-        return new WithFields($this, $attributes);
+        return new WithFields($this, ...$fields);
     }
 
+    /**
+     * @param $mappingFunction
+     * @return Map
+     * @deprecated Use mapMultiple instead
+     */
     public function map($mappingFunction): Map
     {
         return new Map($this, $mappingFunction);
@@ -249,41 +318,125 @@ abstract class ValuedQuery extends Query
         return new MapMultiple($this, ...$mappingFunction);
     }
 
-    public function concatMap($mappingFunction): ConcatMap
+    /**
+     * Concatenate one or more elements into a single sequence using a mapping function.
+     *
+     * concatMap works in a similar fashion to map, applying the given function to each element in a sequence, but it
+     * will always return a single sequence. If the mapping function returns a sequence, map would produce a sequence
+     * of sequences:
+     * @param callable|Query $mappingFunction
+     * @return ConcatMap
+     */
+    public function concatMap(callable|Query $mappingFunction): ConcatMap
     {
         return new ConcatMap($this, $mappingFunction);
     }
 
-    public function orderBy($keys): OrderBy
+    /**
+     * Sort the sequence by document values of the given key(s). To specify the ordering, wrap the attribute with
+     * either r.asc or r.desc (defaults to ascending).
+     *
+     * Note: RethinkDB uses byte-wise ordering for orderBy and does not support Unicode collations; non-ASCII
+     * characters will be sorted by UTF-8 codepoint. For more information on RethinkDB’s sorting order, read the
+     * section in ReQL data types.
+     *
+     * Sorting without an index requires the server to hold the sequence in memory, and is limited to 100,000
+     * documents (or the setting of the arrayLimit option for run). Sorting with an index can be done on arbitrarily
+     * large tables, or after a between command using the same index. This applies to both secondary indexes and the
+     * primary key (e.g., {index: 'id'}).
+     *
+     * Sorting functions passed to orderBy must be deterministic. You cannot, for instance, order rows using the
+     * random command. Using a non-deterministic function with orderBy will raise a ReqlQueryLogicError.
+     * @param string|callable|object|array ...$keys
+     * @return OrderBy
+     */
+    public function orderBy(string|callable|object|array ...$keys): OrderBy
     {
-        return new OrderBy($this, $keys);
+        return new OrderBy($this, ...$keys);
     }
 
-    public function skip($n): Skip
+    /**
+     * Skip a number of elements from the head of the sequence.
+     * @param int|Query $n
+     * @return Skip
+     */
+    public function skip(int|Query $n): Skip
     {
         return new Skip($this, $n);
     }
 
-    public function limit($n): Limit
+    /**
+     * Limit the number of elements in the sequence.
+     * @param int|Query $n
+     * @return Limit
+     */
+    public function limit(int|Query $n): Limit
     {
         return new Limit($this, $n);
     }
 
-    public function slice($startIndex, $endIndex = null, $opts = null): Slice
-    {
+    /**
+     * Return the elements of a sequence within the specified range.
+     *
+     * slice returns the range between startOffset and endOffset. If only startOffset is specified, slice returns the
+     * range from that index to the end of the sequence. Specify leftBound or rightBound as open or closed to indicate
+     * whether to include that endpoint of the range by default: closed returns that endpoint, while open does not. By
+     * default, leftBound is closed and rightBound is open, so the range (10,13) will return the tenth, eleventh and
+     * twelfth elements in the sequence.
+     *
+     * If endOffset is past the end of the sequence, all elements from startOffset to the end of the sequence will be
+     * returned. If startOffset is past the end of the sequence or endOffset is less than startOffset, a zero-element
+     * sequence will be returned.
+     *
+     * Negative startOffset and endOffset values are allowed with arrays; in that case, the returned range counts back
+     * from the array’s end. That is, the range (-2) returns the last two elements, and the range of (2,-1) returns the
+     * second element through the next-to-last element of the range. An error will be raised on a negative startOffset
+     * or endOffset with non-arrays. (An endOffset of −1 is allowed with a stream if rightBound is closed; this behaves
+     * as if no endOffset was specified.)
+     *
+     * If slice is used with a binary object, the indexes refer to byte positions within the object. That is, the range
+     * (10,20) will refer to the 10th byte through the 19th byte.
+     *
+     * With a string, slice behaves similarly, with the indexes referring to Unicode codepoints. String indexes start
+     * at 0. (Note that combining codepoints are counted separately.)
+     * @param int|Query $startIndex
+     * @param int|Query|null $endIndex
+     * @param SliceOptions $opts
+     * @return Slice
+     */
+    public function slice(
+        int|Query $startIndex,
+        int|Query|null $endIndex = null,
+        SliceOptions $opts = new SliceOptions()
+    ): Slice {
         return new Slice($this, $startIndex, $endIndex, $opts);
     }
 
-    public function nth($index): Nth
+    /**
+     * Get the nth element of a sequence, counting from zero. If the argument is negative, count from the last element.
+     * @param int|Query $index
+     * @return Nth
+     */
+    public function nth(int|Query $index): Nth
     {
         return new Nth($this, $index);
     }
 
-    public function offsetsOf($predicate): OffsetsOf
+    /**
+     * Get the indexes of an element in a sequence. If the argument is a predicate, get the indexes of all elements
+     * matching it.
+     * @param mixed $predicate
+     * @return OffsetsOf
+     */
+    public function offsetsOf(mixed $predicate): OffsetsOf
     {
         return new OffsetsOf($this, $predicate);
     }
 
+    /**
+     * Test if a sequence is empty.
+     * @return IsEmpty
+     */
     public function isEmpty(): IsEmpty
     {
         return new IsEmpty($this);
@@ -300,80 +453,259 @@ abstract class ValuedQuery extends Query
         return new Union($this, ...$otherSequences);
     }
 
-    public function sample($n): Sample
+    /**
+     * Select a given number of elements from a sequence with uniform random distribution. Selection is done without
+     * replacement.
+     *
+     * If the sequence has less than the requested number of elements (i.e., calling sample(10) on a sequence with only
+     * five elements), sample will return the entire sequence in a random order.
+     * @param int|Query $n
+     * @return Sample
+     */
+    public function sample(int|Query $n): Sample
     {
         return new Sample($this, $n);
     }
 
-    public function reduce($reductionFunction): Reduce
+    /**
+     * Produce a single value from a sequence through repeated application of a reduction function.
+     *
+     * The reduction function can be called on:
+     *
+     * - two elements of the sequence
+     * - one element of the sequence and one result of a previous reduction
+     * - two results of previous reductions
+     * The reduction function can be called on the results of two previous reductions because the reduce command is
+     * distributed and parallelized across shards and CPU cores. A common mistaken when using the reduce command is to
+     * suppose that the reduction is executed from left to right. Read the map-reduce in RethinkDB article to see an
+     * example.
+     *
+     * If the sequence is empty, the server will produce a ReqlRuntimeError that can be caught with default.
+     * If the sequence has only one element, the first element will be returned.
+     * @param callable|Query $reductionFunction
+     * @return Reduce
+     */
+    public function reduce(callable|Query $reductionFunction): Reduce
     {
         return new Reduce($this, $reductionFunction);
     }
 
-    public function fold($base, $fun, $opts = null): Fold
+    /**
+     * Apply a function to a sequence in order, maintaining state via an accumulator. The fold command returns either a
+     * single value or a new sequence.
+     *
+     * In its first form, fold operates like reduce, returning a value by applying a combining function to each element
+     * in a sequence. The combining function takes two parameters: the previous reduction result (the accumulator) and
+     * the current element. However, fold has the following differences from reduce:
+     *
+     * it is guaranteed to proceed through the sequence from first element to last.
+     * it passes an initial base value to the function with the first element in place of the previous reduction result.
+     * combiningFunction(accumulator | base, element) → newAccumulator
+     *
+     * In its second form, fold operates like concatMap, returning a new sequence rather than a single value. When an
+     * emit function is provided, fold will:
+     *
+     * proceed through the sequence in order and take an initial base value, as above.
+     * for each element in the sequence, call both the combining function and a separate emitting function. The
+     * emitting function takes three parameters: the previous reduction result (the accumulator), the current element,
+     * and the output from the combining function (the new value of the accumulator).
+     * If provided, the emitting function must return a list.
+     *
+     * emit(previousAccumulator, element, accumulator) → array
+     *
+     * A finalEmit function may also be provided, which will be called at the end of the sequence. It takes a single
+     * parameter: the result of the last reduction through the iteration (the accumulator), or the original base value
+     * if the input sequence was empty. This function must return a list, which will be appended to fold’s output
+     * stream.
+     *
+     * finalEmit(accumulator | base) → array
+     * @param mixed $base
+     * @param callable|Query $fun
+     * @param FoldOptions $opts
+     * @return Fold
+     */
+    public function fold(mixed $base, callable|Query $fun, FoldOptions $opts = new FoldOptions()): Fold
     {
         return new Fold($this, $base, $fun, $opts);
     }
 
-    public function count($filter = null): Count
+    /**
+     * Counts the number of elements in a sequence or key/value pairs in an object, or returns the size of a string or
+     * binary object.
+     *
+     * When count is called on a sequence with a predicate value or function, it returns the number of elements in the
+     * sequence equal to that value or where the function returns true. On a binary object, count returns the size of
+     * the object in bytes; on strings, count returns the string’s length. This is determined by counting the number of
+     * Unicode codepoints in the string, counting combining codepoints separately.
+     *
+     * @param mixed|null $filter
+     * @return Count
+     */
+    public function count(mixed $filter = null): Count
     {
         return new Count($this, $filter);
     }
 
-    public function distinct($opts = null): Distinct
+    /**
+     * Removes duplicates from elements in a sequence.
+     *
+     * The distinct command can be called on any sequence or table with an index.
+     *
+     * While distinct can be called on a table without an index, the only effect will be to convert the table into a
+     * stream; the content of the stream will not be affected.
+     * @param ...$opts
+     * @return Distinct
+     */
+    public function distinct(...$opts): Distinct
     {
-        return new Distinct($this, $opts);
+        return new Distinct($this, ...$opts);
     }
 
-    public function group($groupOn): Group
+    /**
+     * Takes a stream and partitions it into multiple groups based on the fields or functions provided.
+     *
+     * With the multi flag single documents can be assigned to multiple groups, similar to the behavior of
+     * multi-indexes. When multi is true and the grouping value is an array, documents will be placed in each group
+     * that corresponds to the elements of the array. If the array is empty the row will be ignored.
+     * @param array|string|object|callable ...$groupOn
+     * @return Group
+     */
+    public function group(array|string|object|callable ...$groupOn): Group
     {
         return new Group($this, $groupOn);
     }
 
+    /**
+     * Takes a grouped stream or grouped data and turns it into an array of objects representing the groups. Any
+     * commands chained after ungroup will operate on this array, rather than operating on each group individually.
+     * This is useful if you want to e.g. order the groups by the value of their reduction.
+     *
+     * The format of the array returned by ungroup is the same as the default native format of grouped data in the
+     * javascript driver and data explorer.
+     * @return Ungroup
+     */
     public function ungroup(): Ungroup
     {
         return new Ungroup($this);
     }
 
-    public function avg($attribute = null): Avg
+    /**
+     * Averages all the elements of a sequence. If called with a field name, averages all the values of that field in
+     * the sequence, skipping elements of the sequence that lack that field. If called with a function, calls that
+     * function on every element of the sequence and averages the results, skipping elements of the sequence where that
+     * function returns null or a non-existence error.
+     *
+     * Produces a non-existence error when called on an empty sequence. You can handle this case with default.
+     * @param callable|string|null $attribute
+     * @return Avg
+     */
+    public function avg(callable|null|string $attribute = null): Avg
     {
         return new Avg($this, $attribute);
     }
 
-    public function sum($attribute = null): Sum
+    /**
+     * Sums all the elements of a sequence. If called with a field name, sums all the values of that field in the
+     * sequence, skipping elements of the sequence that lack that field. If called with a function, calls that function
+     * on every element of the sequence and sums the results, skipping elements of the sequence where that function
+     * returns null or a non-existence error.
+     *
+     * Returns 0 when called on an empty sequence.
+     * @param callable|string|null $attribute
+     * @return Sum
+     */
+    public function sum(callable|null|string $attribute = null): Sum
     {
         return new Sum($this, $attribute);
     }
 
-    public function min($attributeOrOpts = null): Min
+    /**
+     * Finds the minimum element of a sequence.
+     *
+     * The min command can be called with:
+     *
+     * - a field name, to return the element of the sequence with the smallest value in that field;
+     * - an index (the primary key or a secondary index), to return the element of the sequence with the smallest value
+     *   in that index;
+     * - a function, to apply the function to every element within the sequence and return the element which returns
+     *   the smallest value from the function, ignoring any elements where the function produces a non-existence error.
+     * For more information on RethinkDB’s sorting order, read the section in ReQL data types.
+     *
+     * Calling min on an empty sequence will throw a non-existence error; this can be handled using the default command.
+     * @param string|callable ...$attributeOrOpts
+     * @return Min
+     */
+    public function min(string|callable ...$attributeOrOpts): Min
     {
         return new Min($this, $attributeOrOpts);
     }
 
-    public function max($attributeOrOpts = null): Max
+    /**
+     * Finds the maximum element of a sequence.
+     *
+     * The max command can be called with:
+     *
+     * - a field name, to return the element of the sequence with the largest value in that field;
+     * - an index (the primary key or a secondary index), to return the element of the sequence with the largest value
+     *   in that index;
+     * - a function, to apply the function to every element within the sequence and return the element which returns
+     *   the largest value from the function, ignoring any elements where the function produces a non-existence error.
+     * For more information on RethinkDB’s sorting order, read the section in ReQL data types.
+     *
+     * Calling max on an empty sequence will throw a non-existence error; this can be handled using the default command.
+     * @param string|callable ...$attributeOrOpts
+     * @return Max
+     */
+    public function max(string|callable ...$attributeOrOpts): Max
     {
         return new Max($this, $attributeOrOpts);
     }
-    // Note: The API docs suggest that as of 1.6, contains can accept multiple values.
-    //  We do not support that for the time being.
-    public function contains($value): Contains
+
+    /**
+     * When called with values, returns true if a sequence contains all the specified values. When called with
+     * predicate functions, returns true if for each predicate there exists at least one element of the stream where
+     * that predicate returns true.
+     *
+     * Values and predicates may be mixed freely in the argument list.
+     * @param string|int|float|callable|Query ...$value
+     * @return Contains
+     */
+    public function contains(string|int|float|callable|Query ...$value): Contains
     {
-        return new Contains($this, $value);
+        return new Contains($this, ...$value);
     }
 
-    public function pluck($attributes): Pluck
+    /**
+     * Plucks out one or more attributes from either an object or a sequence of objects (projection).
+     * @param array|object|callable|string ...$attributes
+     * @return Pluck
+     */
+    public function pluck(array|object|callable|string...$attributes): Pluck
     {
-        return new Pluck($this, $attributes);
+        return new Pluck($this, ...$attributes);
     }
 
-    public function without($attributes): Without
+    /**
+     * The opposite of pluck; takes an object or a sequence of objects, and returns them with the specified paths
+     * removed.
+     * @param array|object|callable|string ...$attributes
+     * @return Without
+     */
+    public function without(array|object|callable|string ...$attributes): Without
     {
-        return new Without($this, $attributes);
+        return new Without($this, ...$attributes);
     }
 
-    public function merge($other): Merge
+    /**
+     * Merge two or more objects together to construct a new object with properties from all. When there is a conflict
+     * between field names, preference is given to fields in the rightmost object in the argument list. merge also
+     * accepts a subquery function that returns an object, which will be used similarly to a map function.
+     * @param object|callable|array ...$other
+     * @return Merge
+     */
+    public function merge(object|callable|array ...$other): Merge
     {
-        return new Merge($this, $other);
+        return new Merge($this, ...$other);
     }
 
     public function append($value): Append

@@ -2,18 +2,16 @@
 
 namespace r\Queries\Aggregations;
 
-use r\ValuedQuery\ValuedQuery;
 use r\ProtocolBuffer\TermTermType;
+use r\ValuedQuery\ValuedQuery;
 
 class Distinct extends ValuedQuery
 {
-    public function __construct(ValuedQuery $sequence, array $opts = null)
+    public function __construct(ValuedQuery $sequence, ...$opts)
     {
         $this->setPositionalArg(0, $sequence);
-        if (isset($opts)) {
-            foreach ($opts as $opt => $val) {
-                $this->setOptionalArg($opt, $this->nativeToDatum($val));
-            }
+        foreach ($opts as $opt => $val) {
+            $this->setOptionalArg($opt, $this->nativeToDatum($val));
         }
     }
 

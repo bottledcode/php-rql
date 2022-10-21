@@ -157,7 +157,7 @@ class AggregationsTest extends TestCase
                 array('v' => 2, 'x' => 3),
                 array('v' => 4, 'x' => 4)
             )
-        )->group(array('v', 'x'))
+        )->group('v', 'x')
             ->count()
             ->ungroup()
             ->run($this->conn);
@@ -300,7 +300,7 @@ class AggregationsTest extends TestCase
         $this->localSetUp();
 
         $res = $this->db()->table('marvel')
-            ->distinct(array('index' => 'combatPower'))
+            ->distinct(index: 'combatPower')
             ->run($this->conn);
 
         $this->assertEquals(
@@ -341,7 +341,7 @@ class AggregationsTest extends TestCase
         $this->localSetUp();
 
         $res = $this->db()->table('marvel')
-            ->max(array('index' => 'combatPower'))
+            ->max(index: 'combatPower')
             ->getField('combatPower')
             ->run($this->conn);
 
@@ -355,7 +355,7 @@ class AggregationsTest extends TestCase
         $this->localSetUp();
 
         $res = $this->db()->table('marvel')
-            ->min(array('index' => 'combatPower'))
+            ->min(index: 'combatPower')
             ->getField('combatPower')
             ->run($this->conn);
 

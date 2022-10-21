@@ -2,12 +2,13 @@
 
 namespace r\Queries\Joins;
 
+use r\Query;
 use r\ValuedQuery\ValuedQuery;
 use r\ProtocolBuffer\TermTermType;
 
 class InnerJoin extends ValuedQuery
 {
-    public function __construct(ValuedQuery $sequence, ValuedQuery $otherSequence, $predicate)
+    public function __construct(ValuedQuery $sequence, ValuedQuery $otherSequence, callable|Query $predicate)
     {
         $predicate = $this->nativeToFunction($predicate);
         $this->setPositionalArg(0, $sequence);

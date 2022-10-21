@@ -2,12 +2,13 @@
 
 namespace r\Queries\Aggregations;
 
+use r\Query;
 use r\ValuedQuery\ValuedQuery;
 use r\ProtocolBuffer\TermTermType;
 
 class Reduce extends ValuedQuery
 {
-    public function __construct(ValuedQuery $sequence, $reductionFunction)
+    public function __construct(ValuedQuery $sequence, callable|Query $reductionFunction)
     {
         $reductionFunction = $this->nativeToFunction($reductionFunction);
 

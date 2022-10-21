@@ -2,12 +2,13 @@
 
 namespace r\Queries\Transformations;
 
+use r\Query;
 use r\ValuedQuery\ValuedQuery;
 use r\ProtocolBuffer\TermTermType;
 
 class Nth extends ValuedQuery
 {
-    public function __construct(ValuedQuery $sequence, $index)
+    public function __construct(ValuedQuery $sequence, int|Query $index)
     {
         $index = $this->nativeToDatum($index);
 

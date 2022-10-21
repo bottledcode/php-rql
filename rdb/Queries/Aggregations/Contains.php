@@ -2,17 +2,18 @@
 
 namespace r\Queries\Aggregations;
 
-use r\ValuedQuery\ValuedQuery;
 use r\ProtocolBuffer\TermTermType;
+use r\Query;
+use r\ValuedQuery\ValuedQuery;
 
 class Contains extends ValuedQuery
 {
-    public function __construct(ValuedQuery $sequence, mixed $value)
+    public function __construct(ValuedQuery $sequence, string|int|float|callable|Query ...$values)
     {
-        $value = $this->nativeToDatumOrFunction($value);
-
         $this->setPositionalArg(0, $sequence);
-        $this->setPositionalArg(1, $value);
+        foreach ($values as $i => $value) {
+            $this->setPositionalArg($i + 1, $this->nativeToDatumOrFunction($value));
+        }
     }
 
     protected function getTermType(): TermTermType
