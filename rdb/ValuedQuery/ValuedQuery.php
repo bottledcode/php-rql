@@ -3,6 +3,7 @@
 namespace r\ValuedQuery;
 
 use r\Options\BetweenOptions;
+use r\Options\ChangesOptions;
 use r\Options\DeleteOptions;
 use r\Options\DistanceOptions;
 use r\Options\EqJoinOptions;
@@ -708,76 +709,174 @@ abstract class ValuedQuery extends Query
         return new Merge($this, ...$other);
     }
 
-    public function append($value): Append
+    /**
+     * Append a value to an array.
+     * @param mixed $value
+     * @return Append
+     */
+    public function append(mixed $value): Append
     {
         return new Append($this, $value);
     }
 
-    public function prepend($value): Prepend
+    /**
+     * Prepend a value to an array.
+     * @param mixed $value
+     * @return Prepend
+     */
+    public function prepend(mixed $value): Prepend
     {
         return new Prepend($this, $value);
     }
 
-    public function difference($value): Difference
+    /**
+     * Remove the elements of one array from another array.
+     * @param array|Query $value
+     * @return Difference
+     */
+    public function difference(array|Query $value): Difference
     {
         return new Difference($this, $value);
     }
 
-    public function setInsert($value): SetInsert
+    /**
+     * Add a value to an array and return it as a set (an array with distinct values).
+     * @param mixed $value
+     * @return SetInsert
+     */
+    public function setInsert(mixed $value): SetInsert
     {
         return new SetInsert($this, $value);
     }
 
-    public function setUnion($value): SetUnion
+    /**
+     * Add a several values to an array and return it as a set (an array with distinct values).
+     * @param array|Query $value
+     * @return SetUnion
+     */
+    public function setUnion(array|Query $value): SetUnion
     {
         return new SetUnion($this, $value);
     }
 
-    public function setIntersection($value): SetIntersection
+    /**
+     * Intersect two arrays returning values that occur in both of them as a set (an array with distinct values).
+     * @param array|Query $value
+     * @return SetIntersection
+     */
+    public function setIntersection(array|Query $value): SetIntersection
     {
         return new SetIntersection($this, $value);
     }
 
-    public function setDifference($value): SetDifference
+    /**
+     * Remove the elements of one array from another and return them as a set (an array with distinct values).
+     * @param array|Query $value
+     * @return SetDifference
+     */
+    public function setDifference(array|Query $value): SetDifference
     {
         return new SetDifference($this, $value);
     }
 
-    public function getField($attribute): GetField
+    /**
+     * Get a single field from an object. If called on a sequence, gets that field from every object in the sequence,
+     * skipping objects that lack it.
+     * @param string|Query $attribute
+     * @return GetField
+     */
+    public function getField(string|Query $attribute): GetField
     {
         return new GetField($this, $attribute);
     }
 
-    public function hasFields($attributes): HasFields
+    /**
+     * Test if an object has one or more fields. An object has a field if it has that key and the key has a non-null
+     * value. For instance, the object {'a': 1,'b': 2,'c': null} has the fields a and b.
+     *
+     * When applied to a single object, hasFields returns true if the object has the fields and false if it does not.
+     * When applied to a sequence, it will return a new sequence (an array or stream) containing the elements that have
+     * the specified fields.
+     * @param string|Query ...$attributes
+     * @return HasFields
+     */
+    public function hasFields(string|Query ...$attributes): HasFields
     {
-        return new HasFields($this, $attributes);
+        return new HasFields($this, ...$attributes);
     }
 
-    public function insertAt($index, $value): InsertAt
+    /**
+     * Insert a value in to an array at a given index. Returns the modified array.
+     * @param int|Query $index
+     * @param mixed $value
+     * @return InsertAt
+     */
+    public function insertAt(int|Query $index, mixed $value): InsertAt
     {
         return new InsertAt($this, $index, $value);
     }
 
-    public function spliceAt($index, $value): SpliceAt
+    /**
+     * Insert several values in to an array at a given index. Returns the modified array.
+     * @param int|Query $index
+     * @param array|Query $value
+     * @return SpliceAt
+     */
+    public function spliceAt(int|Query $index, array|Query $value): SpliceAt
     {
         return new SpliceAt($this, $index, $value);
     }
 
-    public function deleteAt($index, $endIndex = null): DeleteAt
+    /**
+     * Remove one or more elements from an array at a given index. Returns the modified array. (Note: deleteAt operates
+     * on arrays, not documents; to delete documents, see the delete command.)
+     *
+     * If only offset is specified, deleteAt removes the element at that index. If both offset and endOffset are
+     * specified, deleteAt removes the range of elements between offset and endOffset, inclusive of offset but not
+     * inclusive of endOffset.
+     *
+     * If endOffset is specified, it must not be less than offset. Both offset and endOffset must be within the array’s
+     * bounds (i.e., if the array has 10 elements, an offset or endOffset of 10 or higher is invalid).
+     *
+     * By using a negative offset you can delete from the end of the array. -1 is the last element in the array, -2 is
+     * the second-to-last element, and so on. You may specify a negative endOffset, although just as with a positive
+     * value, this will not be inclusive. The range (2,-1) specifies the third element through the next-to-last element.
+     * @param int|Query $index
+     * @param int|Query|null $endIndex
+     * @return DeleteAt
+     */
+    public function deleteAt(int|Query $index, int|Query|null $endIndex = null): DeleteAt
     {
         return new DeleteAt($this, $index, $endIndex);
     }
 
-    public function changeAt($index, $value): ChangeAt
+    /**
+     * Change a value in an array at a given index. Returns the modified array.
+     * @param int|Query $index
+     * @param mixed $value
+     * @return ChangeAt
+     */
+    public function changeAt(int|Query $index, mixed $value): ChangeAt
     {
         return new ChangeAt($this, $index, $value);
     }
 
+    /**
+     * Return an array containing all of an object’s keys. Note that the keys will be sorted as described in ReQL data
+     * types (for strings, lexicographically).
+     *
+     * @return Keys
+     */
     public function keys(): Keys
     {
         return new Keys($this);
     }
 
+    /**
+     * Return an array containing all of an object’s values. values() guarantees the values will come out in the same
+     * order as keys.
+     * @return Values
+     */
     public function values(): Values
     {
         return new Values($this);
@@ -948,22 +1047,58 @@ abstract class ValuedQuery extends Query
         return new Not($this);
     }
 
-    public function match($expression): RqlMatch
+    /**
+     * Matches against a regular expression. If there is a match, returns an object with the fields:
+     *
+     * str: The matched string
+     * start: The matched string’s start
+     * end: The matched string’s end
+     * groups: The capture groups defined with parentheses
+     * If no match is found, returns null.
+     *
+     * Accepts RE2 syntax. You can enable case-insensitive matching by prefixing the regular expression with (?i). See
+     * the linked RE2 documentation for more flags.
+     *
+     * The match command does not support backreferences.
+     * @param string|Query $expression
+     * @return RqlMatch
+     */
+    public function match(string|Query $expression): RqlMatch
     {
         return new RqlMatch($this, $expression);
     }
 
+    /**
+     * Uppercases a string.
+     * @return Upcase
+     */
     public function upcase(): Upcase
     {
         return new Upcase($this);
     }
 
+    /**
+     * Lowercases a string.
+     * @return Downcase
+     */
     public function downcase(): Downcase
     {
         return new Downcase($this);
     }
 
-    public function split($separator = null, $maxSplits = null): Split
+    /**
+     * Splits a string into substrings. Splits on whitespace when called with no arguments. When called with a
+     * separator, splits on that separator. When called with a separator and a maximum number of splits, splits on that
+     * separator at most max_splits times. (Can be called with null as the separator if you want to split on whitespace
+     * while still specifying max_splits.)
+     *
+     * Mimics the behavior of Python’s string.split in edge cases, except for splitting on the empty string, which
+     * instead produces an array of single-character strings.
+     * @param string|Query|null $separator
+     * @param int|Query|null $maxSplits
+     * @return Split
+     */
+    public function split(string|Query|null $separator = null, int|Query|null $maxSplits = null): Split
     {
         return new Split($this, $separator, $maxSplits);
     }
@@ -997,106 +1132,252 @@ abstract class ValuedQuery extends Query
         return new Round($this);
     }
 
-    public function rForeach($queryFunction): RForeach
+    /**
+     * Loop over a sequence, evaluating the given write query for each element.
+     * @param callable|Query $queryFunction
+     * @return RForeach
+     */
+    public function rForeach(callable|Query $queryFunction): RForeach
     {
         return new RForeach($this, $queryFunction);
     }
 
-    public function coerceTo($typeName): CoerceTo
+    /**
+     * Convert a value of one type into another.
+     *
+     * a sequence, selection or object can be coerced to an array
+     * a sequence, selection or an array of key-value pairs can be coerced to an object
+     * a string can be coerced to a number
+     * any datum (single value) can be coerced to to a string
+     * a binary object can be coerced to a string and vice-versa
+     * @param string|Query $typeName
+     * @return CoerceTo
+     */
+    public function coerceTo(string|Query $typeName): CoerceTo
     {
         return new CoerceTo($this, $typeName);
     }
 
+    /**
+     * Gets the type of a ReQL query’s return value.
+     *
+     * The type will be returned as a string:
+     *
+     * ARRAY
+     * BOOL
+     * DB
+     * FUNCTION
+     * GROUPED_DATA
+     * GROUPED_STREAM
+     * MAXVAL
+     * MINVAL
+     * NULL
+     * NUMBER
+     * OBJECT
+     * PTYPE<BINARY>
+     * PTYPE<GEOMETRY>
+     * PTYPE<TIME>
+     * SELECTION<ARRAY>
+     * SELECTION<OBJECT>
+     * SELECTION<STREAM>
+     * STREAM
+     * STRING
+     * TABLE_SLICE
+     * TABLE
+     * Read the article on ReQL data types for a more detailed discussion. Note that some possible return values from
+     * typeOf are internal values, such as MAXVAL, and unlikely to be returned from queries in standard practice.
+     * @return TypeOf
+     */
     public function typeOf(): TypeOf
     {
         return new TypeOf($this);
     }
 
-    public function rDo($inExpr): RDo
+    /**
+     * Call an anonymous function using return values from other ReQL commands or queries as arguments.
+     *
+     * The last argument to do (or, in some forms, the only argument) is an expression or an anonymous function which
+     * receives values from either the previous arguments or from prefixed commands chained before do. The do command is
+     * essentially a single-element map, letting you map a function over just one document. This allows you to bind a query
+     * result to a local variable within the scope of do, letting you compute the result just once and reuse it in a complex
+     * expression or in a series of ReQL commands.
+     *
+     * Arguments passed to the do function must be basic data types, and cannot be streams or selections. (Read about ReQL
+     * data types.) While the arguments will all be evaluated before the function is executed, they may be evaluated in any
+     * order, so their values should not be dependent on one another. The type of do’s result is the type of the value
+     * returned from the function or last expression.
+     * @see https://rethinkdb.com/api/javascript/do/
+     * @param Query|callable $inExpr
+     * @return RDo
+     */
+    public function rDo(Query|callable $inExpr): RDo
     {
         return new RDo($this, $inExpr);
     }
 
+    /**
+     * Convert a time object to its epoch time.
+     * @return ToEpochTime
+     */
     public function toEpochTime(): ToEpochTime
     {
         return new ToEpochTime($this);
     }
 
+    /**
+     * Convert a time object to a string in ISO 8601 format.
+     * @return ToIso8601
+     */
     public function toIso8601(): ToIso8601
     {
         return new ToIso8601($this);
     }
 
-    public function inTimezone($timezone): InTimezone
+    /**
+     * Return a new time object with a different timezone. While the time stays the same, the results returned by
+     * methods such as hours() will change since they take the timezone into account. The timezone argument has to be
+     * of the ISO 8601 format.
+     * @param string|Query $timezone
+     * @return InTimezone
+     */
+    public function inTimezone(string|Query $timezone): InTimezone
     {
         return new InTimezone($this, $timezone);
     }
 
+    /**
+     * Return the timezone of the time object.
+     * @return Timezone
+     */
     public function timezone(): Timezone
     {
         return new Timezone($this);
     }
 
-    public function during($startTime, $endTime, $opts = null): During
+    /**
+     * Return whether a time is between two other times.
+     *
+     * By default, this is inclusive of the start time and exclusive of the end time. Set leftBound and rightBound to
+     * explicitly include (closed) or exclude (open) that endpoint of the range.
+     * @param Query $startTime
+     * @param Query $endTime
+     * @param SliceOptions $opts
+     * @return During
+     */
+    public function during(Query $startTime, Query $endTime, SliceOptions $opts = new SliceOptions()): During
     {
         return new During($this, $startTime, $endTime, $opts);
     }
 
+    /**
+     * Return a new time object only based on the day, month and year (ie. the same day at 00:00).
+     * @return Date
+     */
     public function date(): Date
     {
         return new Date($this);
     }
 
+    /**
+     * Return the number of seconds elapsed since the beginning of the day stored in the time object.
+     * @return TimeOfDay
+     */
     public function timeOfDay(): TimeOfDay
     {
         return new TimeOfDay($this);
     }
 
+    /**
+     * Return the year of a time object.
+     * @return Year
+     */
     public function year(): Year
     {
         return new Year($this);
     }
 
+    /**
+     * Return the month of a time object as a number between 1 and 12. For your convenience, the terms r.january,
+     * r.february etc. are defined and map to the appropriate integer.
+     * @return Month
+     */
     public function month(): Month
     {
         return new Month($this);
     }
 
+    /**
+     * Return the day of a time object as a number between 1 and 31.
+     * @return Day
+     */
     public function day(): Day
     {
         return new Day($this);
     }
 
+    /**
+     * Return the day of week of a time object as a number between 1 and 7 (following ISO 8601 standard). For your
+     * convenience, the terms r.monday, r.tuesday etc. are defined and map to the appropriate integer.
+     * @return DayOfWeek
+     */
     public function dayOfWeek(): DayOfWeek
     {
         return new DayOfWeek($this);
     }
 
+    /**
+     * Return the day of the year of a time object as a number between 1 and 366 (following ISO 8601 standard).
+     * @return DayOfYear
+     */
     public function dayOfYear(): DayOfYear
     {
         return new DayOfYear($this);
     }
 
+    /**
+     * Return the hour in a time object as a number between 0 and 23.
+     * @return Hours
+     */
     public function hours(): Hours
     {
         return new Hours($this);
     }
 
+    /**
+     * Return the minute in a time object as a number between 0 and 59.
+     * @return Minutes
+     */
     public function minutes(): Minutes
     {
         return new Minutes($this);
     }
 
+    /**
+     * Return the seconds in a time object as a number between 0 and 59.999 (double precision).
+     * @return Seconds
+     */
     public function seconds(): Seconds
     {
         return new Seconds($this);
     }
 
-    public function changes($opts = null): Changes
+    /**
+     * Turn a query into a changefeed, an infinite stream of objects representing changes to the query’s results as
+     * they occur. A changefeed may return changes to a table or an individual document (a “point” changefeed).
+     * Commands such as filter or map may be used before the changes command to transform or filter the output, and
+     * many commands that operate on sequences can be chained after changes.
+     * @param ChangesOptions $opts
+     * @return Changes
+     */
+    public function changes(ChangesOptions $opts = new ChangesOptions()): Changes
     {
         return new Changes($this, $opts);
     }
 
+    /**
+     * Convert a ReQL geometry object to a GeoJSON object.
+     * @return ToGeoJSON
+     */
     public function toGeoJSON(): ToGeoJSON
     {
         return new ToGeoJSON($this);
@@ -1136,16 +1417,38 @@ abstract class ValuedQuery extends Query
         return new Distance($this, $g2, $opts);
     }
 
+    /**
+     * Convert a Line object into a Polygon object. If the last point does not specify the same coordinates as the
+     * first point, polygon will close the polygon by connecting them.
+     *
+     * Longitude (−180 to 180) and latitude (−90 to 90) of vertices are plotted on a perfect sphere. See Geospatial
+     * support for more information on ReQL’s coordinate system.
+     *
+     * If the last point does not specify the same coordinates as the first point, polygon will close the polygon by
+     * connecting them. You cannot directly construct a polygon with holes in it using polygon, but you can use
+     * polygonSub to use a second polygon within the interior of the first to define a hole.
+     * @return Fill
+     */
     public function fill(): Fill
     {
         return new Fill($this);
     }
 
-    public function polygonSub($other): PolygonSub
+    /**
+     * Use polygon2 to “punch out” a hole in polygon1. polygon2 must be completely contained within polygon1 and must
+     * have no holes itself (it must not be the output of polygonSub itself).
+     * @param Query $other
+     * @return PolygonSub
+     */
+    public function polygonSub(Query $other): PolygonSub
     {
         return new PolygonSub($this, $other);
     }
 
+    /**
+     * Convert a ReQL value or object to a JSON string. You may use either toJsonString or toJSON.
+     * @return ToJsonString
+     */
     public function toJsonString(): ToJsonString
     {
         return new ToJsonString($this);

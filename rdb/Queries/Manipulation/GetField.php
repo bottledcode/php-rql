@@ -11,12 +11,8 @@ class GetField extends ValuedQuery
 {
     public function __construct(ValuedQuery $sequence, string|Query $attribute)
     {
-        if (!$attribute instanceof Query) {
-            $attribute = new StringDatum($attribute);
-        }
-
         $this->setPositionalArg(0, $sequence);
-        $this->setPositionalArg(1, $attribute);
+        $this->setPositionalArg(1, $this->nativeToDatum($attribute));
     }
 
     protected function getTermType(): TermTermType

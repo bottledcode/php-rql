@@ -2,18 +2,17 @@
 
 namespace r\Queries\Control;
 
-use r\ValuedQuery\ValuedQuery;
+use r\Options\ChangesOptions;
 use r\ProtocolBuffer\TermTermType;
+use r\ValuedQuery\ValuedQuery;
 
 class Changes extends ValuedQuery
 {
-    public function __construct(ValuedQuery $src, $opts = null)
+    public function __construct(ValuedQuery $src, ChangesOptions $opts)
     {
         $this->setPositionalArg(0, $src);
-        if (isset($opts)) {
-            foreach ($opts as $opt => $val) {
-                $this->setOptionalArg($opt, $this->nativeToDatum($val));
-            }
+        foreach ($opts as $opt => $val) {
+            $this->setOptionalArg($opt, $this->nativeToDatum($val));
         }
     }
 

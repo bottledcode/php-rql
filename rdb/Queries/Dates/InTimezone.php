@@ -2,12 +2,13 @@
 
 namespace r\Queries\Dates;
 
+use r\Query;
 use r\ValuedQuery\ValuedQuery;
 use r\ProtocolBuffer\TermTermType;
 
 class InTimezone extends ValuedQuery
 {
-    public function __construct(ValuedQuery $time, $timezone)
+    public function __construct(ValuedQuery $time, string|Query $timezone)
     {
         $timezone = $this->nativeToDatum($timezone);
 

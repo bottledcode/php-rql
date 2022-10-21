@@ -2,12 +2,13 @@
 
 namespace r\Queries\Manipulation;
 
+use r\Query;
 use r\ValuedQuery\ValuedQuery;
 use r\ProtocolBuffer\TermTermType;
 
 class InsertAt extends ValuedQuery
 {
-    public function __construct(ValuedQuery $sequence, $index, $value)
+    public function __construct(ValuedQuery $sequence, int|Query $index, mixed $value)
     {
         $index = $this->nativeToDatum($index);
         $value = $this->nativeToDatum($value);

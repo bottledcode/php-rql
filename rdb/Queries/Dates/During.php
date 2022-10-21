@@ -2,13 +2,14 @@
 
 namespace r\Queries\Dates;
 
-use r\ValuedQuery\ValuedQuery;
-use r\Exceptions\RqlDriverError;
+use r\Options\SliceOptions;
 use r\ProtocolBuffer\TermTermType;
+use r\Query;
+use r\ValuedQuery\ValuedQuery;
 
 class During extends ValuedQuery
 {
-    public function __construct(ValuedQuery $time, $startTime, $endTime, $opts = null)
+    public function __construct(ValuedQuery $time, Query $startTime, Query $endTime, SliceOptions $opts)
     {
         $startTime = $this->nativeToDatum($startTime);
         $endTime = $this->nativeToDatum($endTime);
@@ -16,13 +17,11 @@ class During extends ValuedQuery
         $this->setPositionalArg(0, $time);
         $this->setPositionalArg(1, $startTime);
         $this->setPositionalArg(2, $endTime);
-        if (isset($opts)) {
-            if (!is_array($opts)) {
-                throw new RqlDriverError("opts argument must be an array");
+        foreach ($opts as $k => $v) {
+            if ($v === null) {
+                continue;
             }
-            foreach ($opts as $k => $v) {
-                $this->setOptionalArg($k, $this->nativeToDatum($v));
-            }
+            $this->setOptionalArg($k, $this->nativeToDatum($v));
         }
     }
 

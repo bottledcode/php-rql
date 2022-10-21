@@ -2,21 +2,18 @@
 
 namespace r\Queries\Manipulation;
 
-use r\ValuedQuery\ValuedQuery;
 use r\ProtocolBuffer\TermTermType;
+use r\Query;
+use r\ValuedQuery\ValuedQuery;
 
 class HasFields extends ValuedQuery
 {
-    public function __construct(ValuedQuery $sequence, $attributes)
+    public function __construct(ValuedQuery $sequence, string|Query ...$attributes)
     {
-        // See comment above about pluck. The same applies here.
-        if (is_string($attributes)) {
-            $attributes = array($attributes);
-        }
-        $attributes = $this->nativeToDatum($attributes);
-
         $this->setPositionalArg(0, $sequence);
-        $this->setPositionalArg(1, $attributes);
+        foreach ($attributes as $i => $attribute) {
+            $this->setPositionalArg($i + 1, $this->nativeToDatum($attribute));
+        }
     }
 
     protected function getTermType(): TermTermType

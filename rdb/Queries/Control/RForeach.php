@@ -2,12 +2,13 @@
 
 namespace r\Queries\Control;
 
+use r\Query;
 use r\ValuedQuery\ValuedQuery;
 use r\ProtocolBuffer\TermTermType;
 
 class RForeach extends ValuedQuery
 {
-    public function __construct(ValuedQuery $sequence, $queryFunction)
+    public function __construct(ValuedQuery $sequence, callable|Query $queryFunction)
     {
         $queryFunction = $this->nativeToFunction($queryFunction);
         $this->setPositionalArg(0, $sequence);

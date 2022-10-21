@@ -4,6 +4,7 @@ namespace r\Tests\Functional;
 
 use DateTime;
 use r\Options\Iso8601Options;
+use r\Options\SliceOptions;
 use r\Tests\TestCase;
 
 // use function \r\expr;
@@ -159,7 +160,7 @@ class DateTest extends TestCase
             \r\epochTime(111111)->during(
                 \r\epochTime(111111),
                 \r\epochTime(111111)->add(10),
-                array('left_bound' => 'open')
+                new SliceOptions(left_bound: 'open')
             )->run($this->conn)
         );
     }
@@ -170,7 +171,7 @@ class DateTest extends TestCase
             \r\epochTime(111111)->during(
                 \r\epochTime(111111)->sub(10),
                 \r\epochTime(111111),
-                array('right_bound' => 'closed')
+                new SliceOptions(right_bound: 'closed')
             )->run($this->conn)
         );
     }

@@ -2,20 +2,16 @@
 
 namespace r\Queries\Control;
 
-use r\ValuedQuery\ValuedQuery;
 use r\ProtocolBuffer\TermTermType;
-use r\Datum\StringDatum;
+use r\Query;
+use r\ValuedQuery\ValuedQuery;
 
 class CoerceTo extends ValuedQuery
 {
-    public function __construct(ValuedQuery $value, $typeName)
+    public function __construct(ValuedQuery $value, string|Query $typeName)
     {
-        if (!(is_object($typeName) && is_subclass_of($typeName, '\r\Query'))) {
-            $typeName = new StringDatum($typeName);
-        }
-
         $this->setPositionalArg(0, $value);
-        $this->setPositionalArg(1, $typeName);
+        $this->setPositionalArg(1, $this->nativeToDatum($typeName));
     }
 
     protected function getTermType(): TermTermType

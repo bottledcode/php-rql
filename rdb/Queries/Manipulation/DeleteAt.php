@@ -2,23 +2,19 @@
 
 namespace r\Queries\Manipulation;
 
-use r\ValuedQuery\ValuedQuery;
 use r\ProtocolBuffer\TermTermType;
+use r\Query;
+use r\ValuedQuery\ValuedQuery;
 
 class DeleteAt extends ValuedQuery
 {
-    public function __construct(ValuedQuery $sequence, $index, $endIndex = null)
+    public function __construct(ValuedQuery $sequence, int|Query $index, int|Query|null $endIndex = null)
     {
         $index = $this->nativeToDatum($index);
-        if (isset($endIndex)) {
-            $endIndex = $this->nativeToDatum($endIndex);
-        }
-
-
         $this->setPositionalArg(0, $sequence);
         $this->setPositionalArg(1, $index);
         if (isset($endIndex)) {
-            $this->setPositionalArg(2, $endIndex);
+            $this->setPositionalArg(2, $this->nativeToDatum($endIndex));
         }
     }
 

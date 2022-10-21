@@ -2,12 +2,13 @@
 
 namespace r\Queries\Manipulation;
 
+use r\Query;
 use r\ValuedQuery\ValuedQuery;
 use r\ProtocolBuffer\TermTermType;
 
 class SetDifference extends ValuedQuery
 {
-    public function __construct(ValuedQuery $sequence, $value)
+    public function __construct(ValuedQuery $sequence, array|Query $value)
     {
         $value = $this->nativeToDatum($value);
 

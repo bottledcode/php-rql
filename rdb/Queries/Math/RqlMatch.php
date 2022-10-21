@@ -2,12 +2,13 @@
 
 namespace r\Queries\Math;
 
+use r\Query;
 use r\ValuedQuery\ValuedQuery;
 use r\ProtocolBuffer\TermTermType;
 
 class RqlMatch extends ValuedQuery
 {
-    public function __construct(ValuedQuery $value, $expression)
+    public function __construct(ValuedQuery $value, string|Query $expression)
     {
         $expression = $this->nativeToDatum($expression);
 

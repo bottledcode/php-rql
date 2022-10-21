@@ -7,7 +7,7 @@ use r\ProtocolBuffer\TermTermType;
 
 class Prepend extends ValuedQuery
 {
-    public function __construct(ValuedQuery $sequence, $value)
+    public function __construct(ValuedQuery $sequence, mixed $value)
     {
         $value = $this->nativeToDatum($value);
 

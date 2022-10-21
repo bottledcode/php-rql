@@ -257,7 +257,7 @@ class ManipulationsTest extends TestCase
     {
         $this->assertTrue(
             \r\expr(array('x' => 1, 'y' => 2))
-                ->hasFields(array('x', 'y'))
+                ->hasFields('x', 'y')
                 ->run($this->conn)
         );
     }
@@ -266,7 +266,7 @@ class ManipulationsTest extends TestCase
     {
         $this->assertFalse(
             \r\expr(array('x' => 1, 'y' => 2))
-                ->hasFields(array('x', 'foo'))
+                ->hasFields('x', 'foo')
                 ->run($this->conn)
         );
     }
@@ -275,7 +275,7 @@ class ManipulationsTest extends TestCase
     {
         $this->assertTrue(
             \r\expr(array('x' => 1, 'y' => 2))
-                ->hasFields(array('x' => true))
+                ->hasFields('x')
                 ->run($this->conn)
         );
     }
@@ -284,7 +284,7 @@ class ManipulationsTest extends TestCase
     {
         $this->assertFalse(
             \r\expr(array('x' => 1, 'y' => 2))
-                ->hasFields(array('foo' => true))
+                ->hasFields('foo')
                 ->run($this->conn)
         );
     }
