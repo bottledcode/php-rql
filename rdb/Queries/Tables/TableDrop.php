@@ -2,23 +2,18 @@
 
 namespace r\Queries\Tables;
 
-use r\ValuedQuery\ValuedQuery;
 use r\ProtocolBuffer\TermTermType;
-use r\Exceptions\RqlDriverError;
+use r\Queries\Dbs\Db;
+use r\ValuedQuery\ValuedQuery;
 
 class TableDrop extends ValuedQuery
 {
-    public function __construct($database, $tableName)
+    public function __construct(Db|null $database, string $tableName)
     {
-        if (isset($database) && !is_a($database, '\r\Queries\Dbs\Db')) {
-            throw new RqlDriverError("Database is not a Db object.");
-        }
         $tableName = $this->nativeToDatum($tableName);
 
         $i = 0;
-        if (isset($database)) {
-            $this->setPositionalArg($i++, $database);
-        }
+        $database !== null && $this->setPositionalArg($i++, $database);
         $this->setPositionalArg($i++, $tableName);
     }
 

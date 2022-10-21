@@ -1,5 +1,8 @@
 <?php
 
+use r\Options\Durability;
+use r\Options\TableCreateOptions;
+
 include __DIR__ . '../../../vendor/autoload.php';
 
 $conn = \r\connect(new \r\ConnectionOptions(host: getenv('RDB_HOST'), port: getenv('RDB_PORT')));
@@ -11,9 +14,9 @@ if ($res['dbs_created'] !== 1.0) {
     exit;
 }
 
-r\db($db)->tableCreate('marvel', array('primary_key' => 'superhero'))->run($conn);
-r\db($db)->tableCreate('dc_universe', array('primary_key' => 'name'))->run($conn);
-r\db($db)->tableCreate('t5000', array('durability' => 'soft'))->run($conn);
+r\db($db)->tableCreate('marvel', new TableCreateOptions(primaryKey: 'superhero'))->run($conn);
+r\db($db)->tableCreate('dc_universe', new TableCreateOptions(primaryKey: 'name'))->run($conn);
+r\db($db)->tableCreate('t5000', new TableCreateOptions(durability: Durability::Soft))->run($conn);
 
 $tables = array(
     't1',
@@ -32,7 +35,6 @@ $geoTable = r\db($db)->table('geo');
 $geoTable->indexCreateGeo('geo')->run($conn);
 $geoTable->indexCreateMultiGeo('mgeo', function ($x) {
     return r\expr(array($x('geo')));
-
 })->run($conn);
 $geoTable->indexWait('geo')->run($conn);
 $geoTable->indexWait('mgeo')->run($conn);

@@ -10,6 +10,7 @@ use r\Datum\NumberDatum;
 use r\Datum\ObjectDatum;
 use r\Datum\StringDatum;
 use r\Exceptions\RqlDriverError;
+use r\Options\TableCreateOptions;
 use r\Options\TableOptions;
 use r\Ordering\Asc;
 use r\Ordering\Desc;
@@ -172,7 +173,7 @@ function dbList(): DbList
 /**
  * Return all documents in a table. Other commands may be chained after table to return a subset of documents (such as
  * get and filter) or perform further processing.
- *
+ * @see https://rethinkdb.com/api/javascript/table/
  * @param string $tableName The name of the table to read from.
  * @param TableOptions $options
  * @return Table
@@ -183,11 +184,40 @@ function table(string $tableName, TableOptions $options = new TableOptions()): T
     return new Table(null, $tableName, $options);
 }
 
-function tableCreate(string $tableName, array $options = null): TableCreate
+/**
+ * Create a table. A RethinkDB table is a collection of JSON documents.
+ *
+ * If successful, the command returns an object with two fields:
+ *
+ * - tables_created: always 1.
+ * - config_changes: a list containing one two-field object, old_val and new_val:
+ *   - old_val: always null.
+ *   - new_val: the table’s new config value.
+ * If a table with the same name already exists, the command throws ReqlOpFailedError.
+ *
+ * @param string $tableName The table name to create
+ * @param TableCreateOptions $options
+ * @return TableCreate
+ */
+function tableCreate(string $tableName, TableCreateOptions $options = new TableCreateOptions()): TableCreate
 {
     return new TableCreate(null, $tableName, $options);
 }
 
+/**
+ * Drop a table from a database. The table and all its data will be deleted.
+ *
+ * If successful, the command returns an object with two fields:
+ *
+ * - tables_dropped: always 1.
+ * - config_changes: a list containing one two-field object, old_val and new_val:
+ *   - old_val: the dropped table’s config value.
+ *   - new_val: always null.
+ * If the given table does not exist in the database, the command throws ReqlRuntimeError.
+ *
+ * @param string $tableName The table to drop
+ * @return TableDrop
+ */
 function tableDrop(string $tableName): TableDrop
 {
     return new TableDrop(null, $tableName);

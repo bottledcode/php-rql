@@ -2,6 +2,10 @@
 
 namespace r\Tests\Functional;
 
+use r\Options\Durability;
+use r\Options\ReadMode;
+use r\Options\TableCreateOptions;
+use r\Options\TableOptions;
 use r\Tests\TestCase;
 
 // use function \r\row;
@@ -25,7 +29,7 @@ class TableTest extends TestCase
     {
         $res = $this->db()->tableCreate(
             't1_' . rand(),
-            array('durability' => 'soft', 'primary_key' => 'p')
+            new TableCreateOptions(primaryKey: 'p', durability: Durability::Soft)
         )
             ->pluck('tables_created')
             ->run($this->conn);
@@ -35,7 +39,7 @@ class TableTest extends TestCase
 
     public function testInsert()
     {
-        $res = $this->db()->table('t1')->insert(array( 'p' => 'foo'))->run($this->conn);
+        $res = $this->db()->table('t1')->insert(array('p' => 'foo'))->run($this->conn);
 
         $this->assertObStatus(array('inserted' => 1), $res);
     }
@@ -147,7 +151,7 @@ class TableTest extends TestCase
             ->indexDrop('akey')
             ->run($this->conn);
 
-            $this->assertEquals(array('dropped' => 1.0), (array)$res);
+        $this->assertEquals(array('dropped' => 1.0), (array)$res);
     }
 
     public function testSync()
@@ -161,7 +165,7 @@ class TableTest extends TestCase
 
     public function testDontUseOutdated()
     {
-        $res = $this->db()->table('t1', array('read_mode' => 'single'))
+        $res = $this->db()->table('t1', new TableOptions(readMode: ReadMode::Single))
             ->count()
             ->run($this->conn);
 
@@ -170,7 +174,7 @@ class TableTest extends TestCase
 
     public function testReadmodeOutdated()
     {
-        $res = $this->db()->table('t1', array('read_mode' => 'outdated'))
+        $res = $this->db()->table('t1', new TableOptions(readMode: ReadMode::Outdated))
             ->count()
             ->run($this->conn);
 
