@@ -5,7 +5,6 @@ namespace r\Queries\Writing;
 use r\Options\TableInsertOptions;
 use r\ProtocolBuffer\TermTermType;
 use r\Queries\Tables\Table;
-use r\Query;
 use r\ValuedQuery\Json;
 use r\ValuedQuery\ValuedQuery;
 
@@ -16,13 +15,11 @@ class Insert extends ValuedQuery
         object|array $document,
         TableInsertOptions $opts = new TableInsertOptions()
     ) {
-        if ($document instanceof Query) {
-            $json = $this->tryEncodeAsJson($document);
-            if ($json !== false) {
-                $document = new Json($json);
-            } else {
-                $document = $this->nativeToDatum($document);
-            }
+        $json = $this->tryEncodeAsJson($document);
+        if ($json !== false) {
+            $document = new Json($json);
+        } else {
+            $document = $this->nativeToDatum($document);
         }
 
         $this->setPositionalArg(0, $table);
