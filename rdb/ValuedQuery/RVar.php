@@ -10,15 +10,13 @@ use r\ProtocolBuffer\TermTermType;
 class RVar extends ValuedQuery
 {
 
-    private $id;
+    private int $id;
+    public string $name;
 
     private static int $nextVarId = 1;
 
-    public function __construct($name)
+    public function __construct(string $name)
     {
-        if (!is_string($name)) {
-            throw new RqlDriverError("Variable name must be a string.");
-        }
         $this->id = RVar::$nextVarId;
         $this->name = $name;
 
