@@ -12,6 +12,9 @@ class Changes extends ValuedQuery
     {
         $this->setPositionalArg(0, $src);
         foreach ($opts as $opt => $val) {
+            if ($val === null) {
+                continue;
+            }
             $this->setOptionalArg($opt, $this->nativeToDatum($val));
         }
     }

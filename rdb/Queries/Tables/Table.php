@@ -4,6 +4,8 @@ namespace r\Queries\Tables;
 
 use r\Datum\StringDatum;
 use r\Exceptions\RqlDriverError;
+use r\Options\GetAllOptions;
+use r\Options\TableInsertOptions;
 use r\Options\TableOptions;
 use r\ProtocolBuffer\TermTermType;
 use r\Queries\Dbs\Db;
@@ -42,7 +44,7 @@ class Table extends ValuedQuery
         );
     }
 
-    public function insert($document, $opts = null): Insert
+    public function insert(array|object $document, TableInsertOptions $opts = new TableInsertOptions()): Insert
     {
         return new Insert($this, $document, $opts);
     }
@@ -52,7 +54,7 @@ class Table extends ValuedQuery
         return new Get($this, $key);
     }
 
-    public function getAll($key, $opts = null): GetAll
+    public function getAll(mixed $key, GetAllOptions $opts = new GetAllOptions()): GetAll
     {
         return new GetAll($this, $key, $opts);
     }

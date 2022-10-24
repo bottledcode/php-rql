@@ -19,7 +19,7 @@ class Backtrace
     /**
      * Returns true if no more frames are available
      */
-    public function consumeFrame(): bool
+    public function consumeFrame(): bool|Frame|Backtrace
     {
         if (\count($this->frames) == 0) {
             return false;

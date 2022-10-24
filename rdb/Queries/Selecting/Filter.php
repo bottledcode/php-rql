@@ -8,7 +8,7 @@ use r\ValuedQuery\ValuedQuery;
 
 class Filter extends ValuedQuery
 {
-    public function __construct(ValuedQuery $sequence, callable|Query $predicate, mixed $default = null)
+    public function __construct(ValuedQuery $sequence, callable|Query|array $predicate, mixed $default = null)
     {
         $this->setPositionalArg(0, $sequence);
         $this->setPositionalArg(1, $this->nativeToDatumOrFunction($predicate));

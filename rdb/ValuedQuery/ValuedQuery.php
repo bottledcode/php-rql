@@ -202,7 +202,7 @@ abstract class ValuedQuery extends Query
      * @param mixed|null $default
      * @return Filter
      */
-    public function filter(callable|Query $predicate, mixed $default = null): Filter
+    public function filter(callable|Query|array $predicate, mixed $default = null): Filter
     {
         return new Filter($this, $predicate, $default);
     }
