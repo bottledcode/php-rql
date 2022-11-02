@@ -8,7 +8,7 @@ use r\ValuedQuery\ValuedQuery;
 
 class Branch extends ValuedQuery
 {
-    public function __construct(Query $test, Query|callable ...$branches)
+    public function __construct(Query $test, mixed ...$branches)
     {
         $this->setPositionalArg(0, $test);
 

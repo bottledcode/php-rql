@@ -13,7 +13,7 @@ class IndexCreate extends ValuedQuery
     {
         $indexName = $this->nativeToDatum($indexName);
         if (isset($keyFunction)) {
-            $keyFunction = $this->nativeToFunction($keyFunction);
+            $keyFunction = $this->nativeToDatumOrFunction($keyFunction);
         }
         if (isset($options)) {
             if (!is_array($options)) {
