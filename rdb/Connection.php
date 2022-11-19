@@ -389,7 +389,7 @@ class Connection extends DatumConverter
 
         $this->sendQuery($token, $jsonQuery);
 
-        if (isset($options['noreply']) && $options['noreply'] === true) {
+        if($options->noreply) {
             return null;
         }
 
