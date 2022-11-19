@@ -5,6 +5,7 @@ namespace r\Datum;
 use r\Datum\Datum;
 use r\DatumConverter;
 use r\Exceptions\RqlDriverError;
+use r\Options\FormatMode;
 
 class ObjectDatum extends Datum
 {
@@ -53,7 +54,7 @@ class ObjectDatum extends Datum
             $native[$key] = $val->toNative($opts);
         }
         // Decode BINARY pseudo-type
-        if ((!isset($opts['binaryFormat']) || $opts['binaryFormat'] == "native")
+        if ((!isset($opts['binaryFormat']) || $opts['binaryFormat'] == FormatMode::Native)
             && isset($native['$reql_type$']) && $native['$reql_type$'] == 'BINARY') {
             $decodedStr = base64_decode($native['data'], true);
             if ($decodedStr === false) {
@@ -64,7 +65,7 @@ class ObjectDatum extends Datum
             return $decodedStr;
         }
         // Decode TIME pseudo-type to DateTime
-        if ((!isset($opts['timeFormat']) || $opts['timeFormat'] == "native")
+        if ((!isset($opts['timeFormat']) || $opts['timeFormat'] == FormatMode::Native)
             && isset($native['$reql_type$']) && $native['$reql_type$'] == 'TIME') {
             $time = $native['epoch_time'];
             // This is really stupid. It looks like we can either use `date`, which ignores microseconds,

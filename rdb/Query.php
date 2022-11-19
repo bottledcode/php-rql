@@ -2,6 +2,7 @@
 
 namespace r;
 
+use r\Options\RunOptions;
 use r\ProtocolBuffer\TermTermType;
 use r\ValuedQuery\Info;
 use r\Queries\Control\RDefault;
@@ -50,7 +51,7 @@ abstract class Query extends DatumConverter
         return array($this->getTermType(), $args, (object)$optargs);
     }
 
-    public function run(Connection $connection, $options = null): Cursor|array|string|null|\DateTimeInterface|float|int|bool
+    public function run(Connection $connection, RunOptions $options = new RunOptions()): Cursor|array|string|null|\DateTimeInterface|float|int|bool
     {
         return $connection->run($this, $options, $profile);
     }

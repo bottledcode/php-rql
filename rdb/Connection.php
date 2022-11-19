@@ -10,6 +10,8 @@ use r\Datum\ObjectDatum;
 use r\Datum\StringDatum;
 use r\Exceptions\RqlDriverError;
 use r\Exceptions\RqlServerError;
+use r\Options\FormatMode;
+use r\Options\RunOptions;
 use r\ProtocolBuffer\QueryQueryType;
 use r\ProtocolBuffer\ResponseResponseType;
 use r\Queries\Dbs\Db;
@@ -359,7 +361,7 @@ class Connection extends DatumConverter
 
     public function run(
         Query $query,
-        array|null $options = [],
+        RunOptions $options = new RunOptions(),
         string|null &$profile = ''
     ): Cursor|array|string|null|\DateTimeInterface|float|int|bool {
         if (!$this->isOpen()) {
@@ -367,11 +369,10 @@ class Connection extends DatumConverter
         }
 
         // Grab PHP-RQL specific options
-        $toNativeOptions = [];
-        foreach (array('binaryFormat', 'timeFormat') as $opt) {
-            $toNativeOptions[$opt] = $options[$opt] ?? null;
-            unset($options[$opt]);
-        }
+        $toNativeOptions = [
+            'binaryFormat' => $options->binary_format ?? FormatMode::Native,
+            'timeFormat' => $options->time_format ?? FormatMode::Native,
+        ];
 
         // Generate a token for the request
         $token = $this->generateToken();
@@ -416,6 +417,9 @@ class Connection extends DatumConverter
         $opts = [];
 
         foreach ((array)$options as $key => $value) {
+            if (in_array($key, ['binary_format', 'time_format']) || null === $value) {
+                continue;
+            }
             $opts[$key] = $this->nativeToDatum($value)->encodeServerRequest();
         }
         return $opts;
