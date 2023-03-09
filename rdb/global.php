@@ -13,6 +13,7 @@ use r\Exceptions\RqlDriverError;
 use r\Options\BinaryFormat;
 use r\Options\CircleOptions;
 use r\Options\DistanceOptions;
+use r\Options\GrantOptions;
 use r\Options\HttpOptions;
 use r\Options\Iso8601Options;
 use r\Options\RandomOptions;
@@ -81,6 +82,7 @@ use r\Queries\Math\Random;
 use r\Queries\Math\ROr;
 use r\Queries\Math\Round;
 use r\Queries\Math\Sub;
+use r\Queries\Misc\Grant;
 use r\Queries\Misc\Maxval;
 use r\Queries\Misc\Minval;
 use r\Queries\Misc\Uuid;
@@ -107,9 +109,9 @@ use r\ValuedQuery\RObject;
  * @return Connection
  */
 function connect(
-    ConnectionOptions $connectionOptions
+	ConnectionOptions $connectionOptions
 ): Connection {
-    return new Connection($connectionOptions);
+	return new Connection($connectionOptions);
 }
 
 /**
@@ -123,7 +125,7 @@ function connect(
  */
 function db(string $dbName): Db
 {
-    return new Db($dbName);
+	return new Db($dbName);
 }
 
 /**
@@ -144,7 +146,12 @@ function db(string $dbName): Db
  */
 function dbCreate(string $dbName): DbCreate
 {
-    return new DbCreate($dbName);
+	return new DbCreate($dbName);
+}
+
+function grant(string $user, GrantOptions $grantOptions): Grant
+{
+	return new Grant(null, $user, $grantOptions);
 }
 
 /**
@@ -164,7 +171,7 @@ function dbCreate(string $dbName): DbCreate
  */
 function dbDrop(string $dbName): DbDrop
 {
-    return new DbDrop($dbName);
+	return new DbDrop($dbName);
 }
 
 /**
@@ -174,7 +181,7 @@ function dbDrop(string $dbName): DbDrop
  */
 function dbList(): DbList
 {
-    return new DbList();
+	return new DbList();
 }
 
 /**
@@ -188,7 +195,7 @@ function dbList(): DbList
  */
 function table(string $tableName, TableOptions $options = new TableOptions()): Table
 {
-    return new Table(null, $tableName, $options);
+	return new Table(null, $tableName, $options);
 }
 
 /**
@@ -208,7 +215,7 @@ function table(string $tableName, TableOptions $options = new TableOptions()): T
  */
 function tableCreate(string $tableName, TableCreateOptions $options = new TableCreateOptions()): TableCreate
 {
-    return new TableCreate(null, $tableName, $options);
+	return new TableCreate(null, $tableName, $options);
 }
 
 /**
@@ -227,7 +234,7 @@ function tableCreate(string $tableName, TableCreateOptions $options = new TableC
  */
 function tableDrop(string $tableName): TableDrop
 {
-    return new TableDrop(null, $tableName);
+	return new TableDrop(null, $tableName);
 }
 
 /**
@@ -237,7 +244,7 @@ function tableDrop(string $tableName): TableDrop
  */
 function tableList(): TableList
 {
-    return new TableList(null);
+	return new TableList(null);
 }
 
 /**
@@ -260,7 +267,7 @@ function tableList(): TableList
  */
 function rDo(array $args, Query|callable $inExpr): RDo
 {
-    return new RDo($args, $inExpr);
+	return new RDo($args, $inExpr);
 }
 
 /**
@@ -275,7 +282,7 @@ function rDo(array $args, Query|callable $inExpr): RDo
  */
 function args(array $args): Args
 {
-    return new Args($args);
+	return new Args($args);
 }
 
 /**
@@ -291,7 +298,7 @@ function args(array $args): Args
  */
 function branch(Query $test, ...$branches): Branch
 {
-    return new Branch($test, ...$branches);
+	return new Branch($test, ...$branches);
 }
 
 /**
@@ -302,12 +309,12 @@ function branch(Query $test, ...$branches): Branch
  */
 function row(string|Query|null $attribute = null): GetField|ImplicitVar
 {
-    if (null !== $attribute) {
-        // A shortcut to do row()($attribute)
-        return new GetField(new ImplicitVar(), $attribute);
-    } else {
-        return new ImplicitVar();
-    }
+	if (null !== $attribute) {
+		// A shortcut to do row()($attribute)
+		return new GetField(new ImplicitVar(), $attribute);
+	} else {
+		return new ImplicitVar();
+	}
 }
 
 /**
@@ -323,7 +330,7 @@ function row(string|Query|null $attribute = null): GetField|ImplicitVar
  */
 function js(string $code, int|null|float $timeout = null): Js
 {
-    return new Js($code, $timeout);
+	return new Js($code, $timeout);
 }
 
 /**
@@ -334,7 +341,7 @@ function js(string $code, int|null|float $timeout = null): Js
  */
 function error(string|null $message = null): Error
 {
-    return new Error($message);
+	return new Error($message);
 }
 
 /**
@@ -345,14 +352,14 @@ function error(string|null $message = null): Error
  * @throws RqlDriverError
  */
 function expr(
-    mixed $obj
+	mixed $obj
 ): MakeObject|ObjectDatum|Iso8601|MakeArray|StringDatum|BoolDatum|NumberDatum|Query|NullDatum|ArrayDatum {
-    if ($obj instanceof Query) {
-        return $obj;
-    }
+	if ($obj instanceof Query) {
+		return $obj;
+	}
 
-    $dc = new DatumConverter;
-    return $dc->nativeToDatum($obj);
+	$dc = new DatumConverter;
+	return $dc->nativeToDatum($obj);
 }
 
 /**
@@ -364,14 +371,14 @@ function expr(
  */
 function binary(string $str): Datum
 {
-    $encodedStr = base64_encode($str);
-    if ($encodedStr === false) {
-        throw new RqlDriverError("Failed to Base64 encode '" . $str . "'");
-    }
-    $pseudo = array('$reql_type$' => 'BINARY', 'data' => $encodedStr);
+	$encodedStr = base64_encode($str);
+	if ($encodedStr === false) {
+		throw new RqlDriverError("Failed to Base64 encode '" . $str . "'");
+	}
+	$pseudo = array('$reql_type$' => 'BINARY', 'data' => $encodedStr);
 
-    $dc = new DatumConverter;
-    return $dc->nativeToDatum($pseudo);
+	$dc = new DatumConverter;
+	return $dc->nativeToDatum($pseudo);
 }
 
 /**
@@ -382,7 +389,7 @@ function binary(string $str): Datum
  */
 function desc(callable|string $attribute): Desc
 {
-    return new Desc($attribute);
+	return new Desc($attribute);
 }
 
 /**
@@ -392,7 +399,7 @@ function desc(callable|string $attribute): Desc
  */
 function asc(callable|string $attribute): Asc
 {
-    return new Asc($attribute);
+	return new Asc($attribute);
 }
 
 /**
@@ -403,7 +410,7 @@ function asc(callable|string $attribute): Asc
  */
 function json(string|Query $json): Json
 {
-    return new Json($json);
+	return new Json($json);
 }
 
 /**
@@ -416,7 +423,7 @@ function json(string|Query $json): Json
  */
 function http(string $url, HttpOptions $opts = new HttpOptions()): Http
 {
-    return new Http($url, $opts);
+	return new Http($url, $opts);
 }
 
 /**
@@ -428,7 +435,7 @@ function http(string $url, HttpOptions $opts = new HttpOptions()): Http
  */
 function rObject(mixed ...$object): RObject
 {
-    return new RObject(...$object);
+	return new RObject(...$object);
 }
 
 /**
@@ -440,11 +447,11 @@ function rObject(mixed ...$object): RObject
  */
 function literal(...$args): Literal
 {
-    if (count($args) == 0) {
-        return new Literal();
-    } else {
-        return new Literal($args[0]);
-    }
+	if (count($args) == 0) {
+		return new Literal();
+	} else {
+		return new Literal($args[0]);
+	}
 }
 
 /**
@@ -459,7 +466,7 @@ function literal(...$args): Literal
  */
 function add(string|int|float|array|Query $expr1, string|int|float|array|Query $expr2): Add
 {
-    return new Add($expr1, $expr2);
+	return new Add($expr1, $expr2);
 }
 
 /**
@@ -471,7 +478,7 @@ function add(string|int|float|array|Query $expr1, string|int|float|array|Query $
  */
 function sub(int|float|Query $expr1, int|float|Query $expr2): Sub
 {
-    return new Sub($expr1, $expr2);
+	return new Sub($expr1, $expr2);
 }
 
 /**
@@ -483,7 +490,7 @@ function sub(int|float|Query $expr1, int|float|Query $expr2): Sub
  */
 function mul(int|float|Query $expr1, int|float|Query $expr2): Mul
 {
-    return new Mul($expr1, $expr2);
+	return new Mul($expr1, $expr2);
 }
 
 /**
@@ -495,7 +502,7 @@ function mul(int|float|Query $expr1, int|float|Query $expr2): Mul
  */
 function div(int|float|Query $expr1, int|float|Query $expr2): Div
 {
-    return new Div($expr1, $expr2);
+	return new Div($expr1, $expr2);
 }
 
 /**
@@ -507,7 +514,7 @@ function div(int|float|Query $expr1, int|float|Query $expr2): Div
  */
 function mod(int|float|Query $expr1, int|float|Query $expr2): Mod
 {
-    return new Mod($expr1, $expr2);
+	return new Mod($expr1, $expr2);
 }
 
 /**
@@ -522,7 +529,7 @@ function mod(int|float|Query $expr1, int|float|Query $expr2): Mod
  */
 function rAnd(bool|Query $expr1, bool|Query $expr2): RAnd
 {
-    return new RAnd($expr1, $expr2);
+	return new RAnd($expr1, $expr2);
 }
 
 /**
@@ -537,7 +544,7 @@ function rAnd(bool|Query $expr1, bool|Query $expr2): RAnd
  */
 function rOr(bool|Query $expr1, bool|Query $expr2): ROr
 {
-    return new ROr($expr1, $expr2);
+	return new ROr($expr1, $expr2);
 }
 
 /**
@@ -549,7 +556,7 @@ function rOr(bool|Query $expr1, bool|Query $expr2): ROr
  */
 function eq(mixed $expr1, mixed $expr2): Eq
 {
-    return new Eq($expr1, $expr2);
+	return new Eq($expr1, $expr2);
 }
 
 /**
@@ -561,7 +568,7 @@ function eq(mixed $expr1, mixed $expr2): Eq
  */
 function ne(mixed $expr1, mixed $expr2): Ne
 {
-    return new Ne($expr1, $expr2);
+	return new Ne($expr1, $expr2);
 }
 
 /**
@@ -573,7 +580,7 @@ function ne(mixed $expr1, mixed $expr2): Ne
  */
 function gt(mixed $expr1, mixed $expr2): Gt
 {
-    return new Gt($expr1, $expr2);
+	return new Gt($expr1, $expr2);
 }
 
 /**
@@ -585,7 +592,7 @@ function gt(mixed $expr1, mixed $expr2): Gt
  */
 function ge(mixed $expr1, mixed $expr2): Ge
 {
-    return new Ge($expr1, $expr2);
+	return new Ge($expr1, $expr2);
 }
 
 /**
@@ -597,7 +604,7 @@ function ge(mixed $expr1, mixed $expr2): Ge
  */
 function lt(mixed $expr1, mixed $expr2): Lt
 {
-    return new Lt($expr1, $expr2);
+	return new Lt($expr1, $expr2);
 }
 
 /**
@@ -609,7 +616,7 @@ function lt(mixed $expr1, mixed $expr2): Lt
  */
 function le(mixed $expr1, mixed $expr2): Le
 {
-    return new Le($expr1, $expr2);
+	return new Le($expr1, $expr2);
 }
 
 /**
@@ -623,7 +630,7 @@ function le(mixed $expr1, mixed $expr2): Le
  */
 function not(bool|Query $expr): Not
 {
-    return new Not($expr);
+	return new Not($expr);
 }
 
 /**
@@ -645,11 +652,11 @@ function not(bool|Query $expr): Not
  * @return Random
  */
 function random(
-    int|float|Query|null $left = null,
-    int|float|Query|RandomOptions|null $right = null,
-    RandomOptions|null $opts = null
+	int|float|Query|null $left = null,
+	int|float|Query|RandomOptions|null $right = null,
+	RandomOptions|null $opts = null
 ): Random {
-    return new Random($left, $right, $opts);
+	return new Random($left, $right, $opts);
 }
 
 /**
@@ -659,7 +666,7 @@ function random(
  */
 function now(): Now
 {
-    return new Now();
+	return new Now();
 }
 
 /**
@@ -685,15 +692,15 @@ function now(): Now
  * @return Time
  */
 function time(
-    int|Query $year,
-    int|Query $month,
-    int|Query $day,
-    string|int|null|Query $hourOrTimezone = null,
-    string|int|null|Query $minute = null,
-    string|int|null|Query $second = null,
-    string|int|null|Query $timezone = null
+	int|Query $year,
+	int|Query $month,
+	int|Query $day,
+	string|int|null|Query $hourOrTimezone = null,
+	string|int|null|Query $minute = null,
+	string|int|null|Query $second = null,
+	string|int|null|Query $timezone = null
 ): Time {
-    return new Time($year, $month, $day, $hourOrTimezone, $minute, $second, $timezone);
+	return new Time($year, $month, $day, $hourOrTimezone, $minute, $second, $timezone);
 }
 
 /**
@@ -704,7 +711,7 @@ function time(
  */
 function epochTime(int|float|Query $epochTime): EpochTime
 {
-    return new EpochTime($epochTime);
+	return new EpochTime($epochTime);
 }
 
 /**
@@ -719,7 +726,7 @@ function epochTime(int|float|Query $epochTime): EpochTime
  */
 function iso8601(string|Query $iso8601Date, Iso8601Options $opts = new Iso8601Options()): Iso8601
 {
-    return new Iso8601($iso8601Date, $opts);
+	return new Iso8601($iso8601Date, $opts);
 }
 
 /**
@@ -728,7 +735,7 @@ function iso8601(string|Query $iso8601Date, Iso8601Options $opts = new Iso8601Op
  */
 function monday(): Monday
 {
-    return new Monday();
+	return new Monday();
 }
 
 /**
@@ -737,7 +744,7 @@ function monday(): Monday
  */
 function tuesday(): Tuesday
 {
-    return new Tuesday();
+	return new Tuesday();
 }
 
 /**
@@ -746,7 +753,7 @@ function tuesday(): Tuesday
  */
 function wednesday(): Wednesday
 {
-    return new Wednesday();
+	return new Wednesday();
 }
 
 /**
@@ -755,7 +762,7 @@ function wednesday(): Wednesday
  */
 function thursday(): Thursday
 {
-    return new Thursday();
+	return new Thursday();
 }
 
 /**
@@ -764,7 +771,7 @@ function thursday(): Thursday
  */
 function friday(): Friday
 {
-    return new Friday();
+	return new Friday();
 }
 
 /**
@@ -773,7 +780,7 @@ function friday(): Friday
  */
 function saturday(): Saturday
 {
-    return new Saturday();
+	return new Saturday();
 }
 
 /**
@@ -782,7 +789,7 @@ function saturday(): Saturday
  */
 function sunday(): Sunday
 {
-    return new Sunday();
+	return new Sunday();
 }
 
 /**
@@ -791,7 +798,7 @@ function sunday(): Sunday
  */
 function january(): January
 {
-    return new January();
+	return new January();
 }
 
 /**
@@ -800,7 +807,7 @@ function january(): January
  */
 function february(): February
 {
-    return new February();
+	return new February();
 }
 
 /**
@@ -809,7 +816,7 @@ function february(): February
  */
 function march(): March
 {
-    return new March();
+	return new March();
 }
 
 /**
@@ -818,7 +825,7 @@ function march(): March
  */
 function april(): April
 {
-    return new April();
+	return new April();
 }
 
 /**
@@ -827,7 +834,7 @@ function april(): April
  */
 function may(): May
 {
-    return new May();
+	return new May();
 }
 
 /**
@@ -836,7 +843,7 @@ function may(): May
  */
 function june(): June
 {
-    return new June();
+	return new June();
 }
 
 /**
@@ -845,7 +852,7 @@ function june(): June
  */
 function july(): July
 {
-    return new July();
+	return new July();
 }
 
 /**
@@ -854,7 +861,7 @@ function july(): July
  */
 function august(): August
 {
-    return new August();
+	return new August();
 }
 
 /**
@@ -863,7 +870,7 @@ function august(): August
  */
 function september(): September
 {
-    return new September();
+	return new September();
 }
 
 /**
@@ -872,7 +879,7 @@ function september(): September
  */
 function october(): October
 {
-    return new October();
+	return new October();
 }
 
 /**
@@ -881,7 +888,7 @@ function october(): October
  */
 function november(): November
 {
-    return new November();
+	return new November();
 }
 
 /**
@@ -890,7 +897,7 @@ function november(): November
  */
 function december(): December
 {
-    return new December();
+	return new December();
 }
 
 /**
@@ -908,7 +915,7 @@ function december(): December
  */
 function geoJSON(array|object $geojson): GeoJSON
 {
-    return new GeoJSON($geojson);
+	return new GeoJSON($geojson);
 }
 
 /**
@@ -922,7 +929,7 @@ function geoJSON(array|object $geojson): GeoJSON
  */
 function point(int|float|Query $lat, int|float|Query $lon): Point
 {
-    return new Point($lat, $lon);
+	return new Point($lat, $lon);
 }
 
 /**
@@ -938,7 +945,7 @@ function point(int|float|Query $lat, int|float|Query $lon): Point
  */
 function line(array|Query ...$points): Line
 {
-    return new Line(...$points);
+	return new Line(...$points);
 }
 
 /**
@@ -958,7 +965,7 @@ function line(array|Query ...$points): Line
  */
 function polygon(array|Query ...$points): Polygon
 {
-    return new Polygon(...$points);
+	return new Polygon(...$points);
 }
 
 /**
@@ -976,7 +983,7 @@ function polygon(array|Query ...$points): Polygon
  */
 function circle(array|Query $center, int|float|Query $radius, CircleOptions $opts = new CircleOptions()): Circle
 {
-    return new Circle($center, $radius, $opts);
+	return new Circle($center, $radius, $opts);
 }
 
 /**
@@ -988,7 +995,7 @@ function circle(array|Query $center, int|float|Query $radius, CircleOptions $opt
  */
 function intersects(Query $g1, Query $g2): Intersects
 {
-    return new Intersects($g1, $g2);
+	return new Intersects($g1, $g2);
 }
 
 /**
@@ -1007,7 +1014,7 @@ function intersects(Query $g1, Query $g2): Intersects
  */
 function distance(Query $g1, Query $g2, DistanceOptions $opts = new DistanceOptions()): Distance
 {
-    return new Distance($g1, $g2, $opts);
+	return new Distance($g1, $g2, $opts);
 }
 
 /**
@@ -1026,7 +1033,7 @@ function distance(Query $g1, Query $g2, DistanceOptions $opts = new DistanceOpti
  */
 function uuid(string|Query $str = null): Uuid
 {
-    return new Uuid($str);
+	return new Uuid($str);
 }
 
 /**
@@ -1035,7 +1042,7 @@ function uuid(string|Query $str = null): Uuid
  */
 function minval(): Minval
 {
-    return new Minval();
+	return new Minval();
 }
 
 /**
@@ -1044,7 +1051,7 @@ function minval(): Minval
  */
 function maxval(): Maxval
 {
-    return new Maxval();
+	return new Maxval();
 }
 
 /**
@@ -1068,7 +1075,7 @@ function maxval(): Maxval
  */
 function range(int|Query $startOrEndValue = null, int|Query $endValue = null): Range
 {
-    return new Range($startOrEndValue, $endValue);
+	return new Range($startOrEndValue, $endValue);
 }
 
 /**
@@ -1084,7 +1091,7 @@ function range(int|Query $startOrEndValue = null, int|Query $endValue = null): R
  */
 function mapMultiple(array|Query $sequences, callable|Query|array ...$mappingFunction): MapMultiple
 {
-    return new MapMultiple($sequences, ...$mappingFunction);
+	return new MapMultiple($sequences, ...$mappingFunction);
 }
 
 /**
@@ -1096,7 +1103,7 @@ function mapMultiple(array|Query $sequences, callable|Query|array ...$mappingFun
  */
 function union(array|Query $sequence, array|Query|UnionOptions ...$otherSequences): Union
 {
-    return new Union($sequence, ...$otherSequences);
+	return new Union($sequence, ...$otherSequences);
 }
 
 /**
@@ -1107,7 +1114,7 @@ function union(array|Query $sequence, array|Query|UnionOptions ...$otherSequence
  */
 function ceil(float|int|Query $value): Ceil
 {
-    return new Ceil($value);
+	return new Ceil($value);
 }
 
 /**
@@ -1118,7 +1125,7 @@ function ceil(float|int|Query $value): Ceil
  */
 function floor(float|int|Query $value): Floor
 {
-    return new Floor($value);
+	return new Floor($value);
 }
 
 /**
@@ -1128,10 +1135,10 @@ function floor(float|int|Query $value): Floor
  */
 function round(float|int|Query $value): Round
 {
-    return new Round($value);
+	return new Round($value);
 }
 
 function systemInfo(): string
 {
-    return "PHP-RQL Version: " . PHP_RQL_VERSION . "\n";
+	return "PHP-RQL Version: " . PHP_RQL_VERSION . "\n";
 }
