@@ -17,7 +17,7 @@ class Grant extends ValuedQuery
 	{
 		$this->setPositionalArg(0, $scope);
 		$this->setPositionalArg(1, new StringDatum($user));
-		$this->setOptionalArg('permission', $this->nativeToDatum($permission));
+		$this->setPositionalArg(2, $this->nativeToDatum($permission));
 	}
 
 	protected function getTermType(): TermTermType
