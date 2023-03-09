@@ -17,18 +17,7 @@ class Grant extends ValuedQuery
 	{
 		$this->setPositionalArg(0, $scope);
 		$this->setPositionalArg(1, new StringDatum($user));
-		foreach($permission as $i => $p) {
-			if($p instanceof GrantPermission) {
-				$this->setOptionalArg(match($p) {
-					GrantPermission::Read => 'read',
-					GrantPermission::Write => 'write',
-					GrantPermission::Config => 'config',
-					GrantPermission::Connect => 'connect',
-				}, new BoolDatum(true));
-			} else {
-				$this->setOptionalArg($i, new BoolDatum($p));
-			}
-		}
+		$this->setOptionalArg('permission', $this->nativeToDatum($permission));
 	}
 
 	protected function getTermType(): TermTermType
