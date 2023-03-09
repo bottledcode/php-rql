@@ -51,9 +51,9 @@ class Table extends ValuedQuery
 		return new Insert($this, $document, $opts);
 	}
 
-	public function grant(string $user, GrantOptions $options): Grant
+	public function grant(string $user, ...$permissions): Grant
 	{
-		return new Grant($this, $user, $options);
+		return new Grant($this, $user, ...$permissions);
 	}
 
 	public function get($key): Get

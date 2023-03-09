@@ -39,9 +39,9 @@ class Db extends Query
 		return new Table($this, $tableName, $options);
 	}
 
-	public function grant(string $user, GrantOptions $options): Grant
+	public function grant(string $user, ...$permissions): Grant
 	{
-		return new Grant($this, $user, $options);
+		return new Grant($this, $user, ...$permissions);
 	}
 
 	/**

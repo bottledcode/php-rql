@@ -149,9 +149,9 @@ function dbCreate(string $dbName): DbCreate
 	return new DbCreate($dbName);
 }
 
-function grant(string $user, GrantOptions $grantOptions): Grant
+function grant(string $user, ...$permissions): Grant
 {
-	return new Grant(null, $user, $grantOptions);
+	return new Grant(null, $user, ...$permissions);
 }
 
 /**
