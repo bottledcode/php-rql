@@ -150,7 +150,19 @@ class PBParser
 
         while (strlen($string) > 0) {
             $next = ($this->_next($string));
-            if (strtolower($next) == 'message') {
+            if (strtolower($next) == 'syntax') {
+                $string = trim(substr($string, strlen($next)));
+                $equalsSign = $this->_next($string);
+                if ($equalsSign != '=') {
+                    throw new Exception("Protofile 'syntax' line unrecognized, expecting '=', got " . $equalsSign);
+                }
+                $string = trim(substr($string, strlen($equalsSign)));
+                $proto2semi = $this->_next($string);
+                if ($proto2semi != '"proto2";') {
+                    throw new Exception("Protofile 'syntax' line unrecognized, expecting exact faux-token '\"proto2\";', got " . $proto2semi);
+                }
+                $string = trim(substr($string, strlen($proto2semi)));
+            } elseif (strtolower($next) == 'message') {
                 $string = trim(substr($string, strlen($next)));
                 $name = $this->_next($string);
 
