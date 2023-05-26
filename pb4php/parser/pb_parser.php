@@ -277,7 +277,7 @@ class PBParser
         $apath = explode(".", $path);
         if ($apath > 1) {
             array_pop($apath);
-            $namespace = trim(trim(join($apath, '.'), '.') . '.' . $type, '.');
+            $namespace = trim(trim(implode('.', $apath), '.') . '.' . $type, '.');
         }
 
         // try the namespace
