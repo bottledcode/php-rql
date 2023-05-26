@@ -73,6 +73,8 @@ enum TermTermType: int
     case PB_GET_FIELD = 31;
     case PB_GET_INTERSECTING = 166;
     case PB_GET_NEAREST = 168;
+    case PB_GET_WRITE_HOOK = 190;
+    case PB_SET_WRITE_HOOK = 189;
     case PB_GROUP = 144;
     case PB_GT = 21;
     case PB_HAS_FIELDS = 32;

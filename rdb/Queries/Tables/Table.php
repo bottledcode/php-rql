@@ -27,132 +27,139 @@ use r\ValuedQuery\ValuedQuery;
 
 class Table extends ValuedQuery
 {
-	public function __construct(Db|null $database, string $tableName, TableOptions $options = new TableOptions())
-	{
-		$tableName = $this->nativeToDatum($tableName);
-		if (isset($useOutdated) && !is_bool($useOutdated)) {
-			throw new RqlDriverError("Use outdated must be bool.");
-		}
+    public function __construct(Db|null $database, string $tableName, TableOptions $options = new TableOptions())
+    {
+        $tableName = $this->nativeToDatum($tableName);
 
-		$i = 0;
-		if (isset($database)) {
-			$this->setPositionalArg($i++, $database);
-		}
-		$this->setPositionalArg($i++, $tableName);
-		$options->readMode !== null && $this->setOptionalArg('read_mode', new StringDatum($options->readMode->value));
-		$options->identifierFormat !== null && $this->setOptionalArg(
-			'identifier_format',
-			new StringDatum($options->identifierFormat->value)
-		);
-	}
+        $i = 0;
+        if (isset($database)) {
+            $this->setPositionalArg($i++, $database);
+        }
+        $this->setPositionalArg($i++, $tableName);
+        $options->readMode !== null && $this->setOptionalArg('read_mode', new StringDatum($options->readMode->value));
+        $options->identifierFormat !== null && $this->setOptionalArg(
+            'identifier_format',
+            new StringDatum($options->identifierFormat->value)
+        );
+    }
 
-	public function insert(array|object $document, TableInsertOptions $opts = new TableInsertOptions()): Insert
-	{
-		return new Insert($this, $document, $opts);
-	}
+    public function insert(array|object $document, TableInsertOptions $opts = new TableInsertOptions()): Insert
+    {
+        return new Insert($this, $document, $opts);
+    }
 
-	public function grant(string $user, ...$permissions): Grant
-	{
-		return new Grant($this, $user, ...$permissions);
-	}
+    public function grant(string $user, ...$permissions): Grant
+    {
+        return new Grant($this, $user, ...$permissions);
+    }
 
-	public function get($key): Get
-	{
-		return new Get($this, $key);
-	}
+    public function get($key): Get
+    {
+        return new Get($this, $key);
+    }
 
-	public function getAll(mixed $key, GetAllOptions $opts = new GetAllOptions()): GetAll
-	{
-		return new GetAll($this, $key, $opts);
-	}
+    public function getAll(mixed $key, GetAllOptions $opts = new GetAllOptions()): GetAll
+    {
+        return new GetAll($this, $key, $opts);
+    }
 
-	public function getMultiple($keys, $opts = null): GetMultiple
-	{
-		return new GetMultiple($this, $keys, $opts);
-	}
+    public function getMultiple($keys, $opts = null): GetMultiple
+    {
+        return new GetMultiple($this, $keys, $opts);
+    }
 
-	public function getIntersecting($geo, $opts = null): GetIntersecting
-	{
-		return new GetIntersecting($this, $geo, $opts);
-	}
+    public function setWriteHook(callable $writeHookFunction): SetWriteHook
+    {
+        return new SetWriteHook($this, $writeHookFunction);
+    }
 
-	public function getNearest($center, $opts = null): GetNearest
-	{
-		return new GetNearest($this, $center, $opts);
-	}
+    public function getWriteHook(): GetWriteHook
+    {
+        return new GetWriteHook($this);
+    }
 
-	public function sync(): Sync
-	{
-		return new Sync($this);
-	}
+    public function getIntersecting($geo, $opts = null): GetIntersecting
+    {
+        return new GetIntersecting($this, $geo, $opts);
+    }
 
-	public function indexCreate($indexName, $keyFunction = null): IndexCreate
-	{
-		return new IndexCreate($this, $indexName, $keyFunction);
-	}
+    public function getNearest($center, $opts = null): GetNearest
+    {
+        return new GetNearest($this, $center, $opts);
+    }
 
-	public function indexCreateMulti($indexName, $keyFunction = null): IndexCreate
-	{
-		return new IndexCreate($this, $indexName, $keyFunction, array('multi' => true));
-	}
+    public function sync(): Sync
+    {
+        return new Sync($this);
+    }
 
-	public function indexCreateGeo($indexName, $keyFunction = null): IndexCreate
-	{
-		return new IndexCreate($this, $indexName, $keyFunction, array('geo' => true));
-	}
+    public function indexCreate($indexName, $keyFunction = null): IndexCreate
+    {
+        return new IndexCreate($this, $indexName, $keyFunction);
+    }
 
-	public function indexCreateMultiGeo($indexName, $keyFunction = null): IndexCreate
-	{
-		return new IndexCreate($this, $indexName, $keyFunction, array('multi' => true, 'geo' => true));
-	}
+    public function indexCreateMulti($indexName, $keyFunction = null): IndexCreate
+    {
+        return new IndexCreate($this, $indexName, $keyFunction, array('multi' => true));
+    }
 
-	public function indexDrop($indexName): IndexDrop
-	{
-		return new IndexDrop($this, $indexName);
-	}
+    public function indexCreateGeo($indexName, $keyFunction = null): IndexCreate
+    {
+        return new IndexCreate($this, $indexName, $keyFunction, array('geo' => true));
+    }
 
-	public function indexList(): IndexList
-	{
-		return new IndexList($this);
-	}
+    public function indexCreateMultiGeo($indexName, $keyFunction = null): IndexCreate
+    {
+        return new IndexCreate($this, $indexName, $keyFunction, array('multi' => true, 'geo' => true));
+    }
 
-	public function indexStatus($indexNames = null): IndexStatus
-	{
-		return new IndexStatus($this, $indexNames);
-	}
+    public function indexDrop($indexName): IndexDrop
+    {
+        return new IndexDrop($this, $indexName);
+    }
 
-	public function indexWait($indexNames = null): IndexWait
-	{
-		return new IndexWait($this, $indexNames);
-	}
+    public function indexList(): IndexList
+    {
+        return new IndexList($this);
+    }
 
-	public function wait($opts = null): Wait
-	{
-		return new Wait($this, $opts);
-	}
+    public function indexStatus($indexNames = null): IndexStatus
+    {
+        return new IndexStatus($this, $indexNames);
+    }
 
-	public function reconfigure($opts = null): Reconfigure
-	{
-		return new Reconfigure($this, $opts);
-	}
+    public function indexWait($indexNames = null): IndexWait
+    {
+        return new IndexWait($this, $indexNames);
+    }
 
-	public function rebalance(): Rebalance
-	{
-		return new Rebalance($this);
-	}
+    public function wait($opts = null): Wait
+    {
+        return new Wait($this, $opts);
+    }
 
-	public function config(): Config
-	{
-		return new Config($this);
-	}
+    public function reconfigure($opts = null): Reconfigure
+    {
+        return new Reconfigure($this, $opts);
+    }
 
-	public function status(): Status
-	{
-		return new Status($this);
-	}
+    public function rebalance(): Rebalance
+    {
+        return new Rebalance($this);
+    }
 
-	protected function getTermType(): TermTermType
-	{
-		return TermTermType::PB_TABLE;
-	}
+    public function config(): Config
+    {
+        return new Config($this);
+    }
+
+    public function status(): Status
+    {
+        return new Status($this);
+    }
+
+    protected function getTermType(): TermTermType
+    {
+        return TermTermType::PB_TABLE;
+    }
 }
