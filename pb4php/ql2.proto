@@ -119,26 +119,26 @@ message Response {
         SUCCESS_ATOM      = 1; // Query returned a single RQL datatype.
         SUCCESS_SEQUENCE  = 2; // Query returned a sequence of RQL datatypes.
         SUCCESS_PARTIAL   = 3; // Query returned a partial sequence of RQL
-                               // datatypes.  If you send a [CONTINUE] query with
-                               // the same token as this response, you will get
-                               // more of the sequence.  Keep sending [CONTINUE]
-                               // queries until you get back [SUCCESS_SEQUENCE].
+        // datatypes.  If you send a [CONTINUE] query with
+        // the same token as this response, you will get
+        // more of the sequence.  Keep sending [CONTINUE]
+        // queries until you get back [SUCCESS_SEQUENCE].
         WAIT_COMPLETE     = 4; // A [NOREPLY_WAIT] query completed.
         SERVER_INFO       = 5; // The data for a [SERVER_INFO] request.  This is
-                               // the same as `SUCCESS_ATOM` except that there will
-                               // never be profiling data.
+        // the same as `SUCCESS_ATOM` except that there will
+        // never be profiling data.
 
         // These response types indicate failure.
         CLIENT_ERROR  = 16; // Means the client is buggy.  An example is if the
-                            // client sends a malformed protobuf, or tries to
-                            // send [CONTINUE] for an unknown token.
+        // client sends a malformed protobuf, or tries to
+        // send [CONTINUE] for an unknown token.
         COMPILE_ERROR = 17; // Means the query failed during parsing or type
-                            // checking.  For example, if you pass too many
-                            // arguments to a function.
+        // checking.  For example, if you pass too many
+        // arguments to a function.
         RUNTIME_ERROR = 18; // Means the query failed at runtime.  An example is
-                            // if you add together two values from a table, but
-                            // they turn out at runtime to be booleans rather
-                            // than numbers.
+        // if you add together two values from a table, but
+        // they turn out at runtime to be booleans rather
+        // than numbers.
     }
     optional ResponseType type = 1;
 
@@ -302,24 +302,24 @@ message Term {
         VAR          = 10; // !NUMBER -> DATUM
         // Takes some javascript code and executes it.
         JAVASCRIPT   = 11; // STRING {timeout: !NUMBER} -> DATUM |
-                           // STRING {timeout: !NUMBER} -> Function(*)
+        // STRING {timeout: !NUMBER} -> Function(*)
         UUID = 169; // () -> DATUM
 
         // Takes an HTTP URL and gets it.  If the get succeeds and
         //  returns valid JSON, it is converted into a DATUM
         HTTP = 153; // STRING {data: OBJECT | STRING,
-                    //         timeout: !NUMBER,
-                    //         method: STRING,
-                    //         params: OBJECT,
-                    //         header: OBJECT | ARRAY,
-                    //         attempts: NUMBER,
-                    //         redirects: NUMBER,
-                    //         verify: BOOL,
-                    //         page: FUNC | STRING,
-                    //         page_limit: NUMBER,
-                    //         auth: OBJECT,
-                    //         result_format: STRING,
-                    //         } -> STRING | STREAM
+        //         timeout: !NUMBER,
+        //         method: STRING,
+        //         params: OBJECT,
+        //         header: OBJECT | ARRAY,
+        //         attempts: NUMBER,
+        //         redirects: NUMBER,
+        //         verify: BOOL,
+        //         page: FUNC | STRING,
+        //         page_limit: NUMBER,
+        //         auth: OBJECT,
+        //         result_format: STRING,
+        //         } -> STRING | STREAM
 
         // Takes a string and throws an error with that message.
         // Inside of a `default` block, you can omit the first
@@ -334,10 +334,10 @@ message Term {
         DB    = 14; // STRING -> Database
         // Returns a reference to a table.
         TABLE = 15; // Database, STRING, {read_mode:STRING, identifier_format:STRING} -> Table
-                    // STRING, {read_mode:STRING, identifier_format:STRING} -> Table
+        // STRING, {read_mode:STRING, identifier_format:STRING} -> Table
         // Gets a single element from a table by its primary or a secondary key.
         GET   = 16; // Table, STRING -> SingleSelection | Table, NUMBER -> SingleSelection |
-                    // Table, STRING -> NULL            | Table, NUMBER -> NULL |
+        // Table, STRING -> NULL            | Table, NUMBER -> NULL |
         GET_ALL = 78; // Table, DATUM..., {index:!STRING} => ARRAY
 
         // Simple DATUM Ops
@@ -387,7 +387,7 @@ message Term {
         // Get a particular field from an object, or map that over a
         // sequence.
         GET_FIELD  = 31; // OBJECT, STRING -> DATUM
-                         // | Sequence, STRING -> Sequence
+        // | Sequence, STRING -> Sequence
         // Return an array containing the keys of the object.
         KEYS = 94; // OBJECT -> ARRAY
         // Return an array containing the values of the object.
@@ -415,12 +415,12 @@ message Term {
         // changed by passing 'closed' or 'open for `right_bound` or
         // `left_bound`.
         BETWEEN_DEPRECATED = 36; // Deprecated version of between, which allows `null` to specify unboundedness
-                                 // With the newer version, clients should use `r.minval` and `r.maxval` for unboundedness
+        // With the newer version, clients should use `r.minval` and `r.maxval` for unboundedness
         BETWEEN   = 182; // StreamSelection, DATUM, DATUM, {index:!STRING, right_bound:STRING, left_bound:STRING} -> StreamSelection
         REDUCE    = 37; // Sequence, Function(2) -> DATUM
         MAP       = 38; // Sequence, Function(1) -> Sequence
-                        // The arity of the function should be
-                        // Sequence..., Function(sizeof...(Sequence)) -> Sequence
+        // The arity of the function should be
+        // Sequence..., Function(sizeof...(Sequence)) -> Sequence
 
         FOLD      = 187; // Sequence, Datum, Function(2), {Function(3), Function(1)
 
@@ -432,7 +432,7 @@ message Term {
         // caught by `default` will be rethrown as if the `default`
         // did not exist.
         FILTER    = 39; // Sequence, Function(1), {default:DATUM} -> Sequence |
-                        // Sequence, OBJECT, {default:DATUM} -> Sequence
+        // Sequence, OBJECT, {default:DATUM} -> Sequence
         // Map a function over a sequence and then concatenate the results together.
         CONCAT_MAP = 40; // Sequence, Function(1) -> Sequence
         // Order a sequence based on one or more attributes.
@@ -458,15 +458,15 @@ message Term {
         EQ_JOIN            = 50; // Sequence, !STRING, Sequence, {index:!STRING} -> Sequence
         ZIP                = 72; // Sequence -> Sequence
         RANGE              = 173; // -> Sequence                        [0, +inf)
-                                  // NUMBER -> Sequence                 [0, a)
-                                  // NUMBER, NUMBER -> Sequence         [a, b)
+        // NUMBER -> Sequence                 [0, a)
+        // NUMBER, NUMBER -> Sequence         [a, b)
 
         // Array Ops
         // Insert an element in to an array at a given index.
         INSERT_AT          = 82; // ARRAY, NUMBER, DATUM -> ARRAY
         // Remove an element at a given index from an array.
         DELETE_AT          = 83; // ARRAY, NUMBER -> ARRAY |
-                                 // ARRAY, NUMBER, NUMBER -> ARRAY
+        // ARRAY, NUMBER, NUMBER -> ARRAY
         // Change the element at a given index of an array.
         CHANGE_AT          = 84; // ARRAY, NUMBER, DATUM -> ARRAY
         // Splice one array in to another array.
@@ -484,9 +484,9 @@ message Term {
         // Updates all the rows in a selection.  Calls its Function with the row
         // to be updated, and then merges the result of that call.
         UPDATE   = 53; // StreamSelection, Function(1), {non_atomic:BOOL, durability:STRING, return_changes:BOOL} -> OBJECT |
-                       // SingleSelection, Function(1), {non_atomic:BOOL, durability:STRING, return_changes:BOOL} -> OBJECT |
-                       // StreamSelection, OBJECT,      {non_atomic:BOOL, durability:STRING, return_changes:BOOL} -> OBJECT |
-                       // SingleSelection, OBJECT,      {non_atomic:BOOL, durability:STRING, return_changes:BOOL} -> OBJECT
+        // SingleSelection, Function(1), {non_atomic:BOOL, durability:STRING, return_changes:BOOL} -> OBJECT |
+        // StreamSelection, OBJECT,      {non_atomic:BOOL, durability:STRING, return_changes:BOOL} -> OBJECT |
+        // SingleSelection, OBJECT,      {non_atomic:BOOL, durability:STRING, return_changes:BOOL} -> OBJECT
         // Deletes all the rows in a selection.
         DELETE   = 54; // StreamSelection, {durability:STRING, return_changes:BOOL} -> OBJECT | SingleSelection -> OBJECT
         // Replaces all the rows in a selection.  Calls its Function with the row
@@ -510,22 +510,22 @@ message Term {
         // database.  (You may omit the first argument to use the
         // default database.)
         TABLE_CREATE  = 60; // Database, STRING, {primary_key:STRING, shards:NUMBER, replicas:NUMBER, primary_replica_tag:STRING} -> OBJECT
-                            // Database, STRING, {primary_key:STRING, shards:NUMBER, replicas:OBJECT, primary_replica_tag:STRING} -> OBJECT
-                            // STRING, {primary_key:STRING, shards:NUMBER, replicas:NUMBER, primary_replica_tag:STRING} -> OBJECT
-                            // STRING, {primary_key:STRING, shards:NUMBER, replicas:OBJECT, primary_replica_tag:STRING} -> OBJECT
+        // Database, STRING, {primary_key:STRING, shards:NUMBER, replicas:OBJECT, primary_replica_tag:STRING} -> OBJECT
+        // STRING, {primary_key:STRING, shards:NUMBER, replicas:NUMBER, primary_replica_tag:STRING} -> OBJECT
+        // STRING, {primary_key:STRING, shards:NUMBER, replicas:OBJECT, primary_replica_tag:STRING} -> OBJECT
         // Drops a table with a particular name from a particular
         // database.  (You may omit the first argument to use the
         // default database.)
         TABLE_DROP    = 61; // Database, STRING -> OBJECT
-                                // STRING -> OBJECT
+        // STRING -> OBJECT
         // Lists all the tables in a particular database.  (You may
         // omit the first argument to use the default database.)
         TABLE_LIST    = 62; // Database -> ARRAY
-                            //  -> ARRAY
+        //  -> ARRAY
         // Returns the row in the `rethinkdb.table_config` or `rethinkdb.db_config` table
         // that corresponds to the given database or table.
         CONFIG  = 174; // Database -> SingleSelection
-                       // Table -> SingleSelection
+        // Table -> SingleSelection
         // Returns the row in the `rethinkdb.table_status` table that corresponds to the
         // given table.
         STATUS  = 175; // Table -> SingleSelection
@@ -533,24 +533,24 @@ message Term {
         // Called on a database, waits for all of the tables in the database to be ready.
         // Returns the corresponding row or rows from the `rethinkdb.table_status` table.
         WAIT    = 177; // Table -> OBJECT
-                       // Database -> OBJECT
+        // Database -> OBJECT
         // Generates a new config for the given table, or all tables in the given database
         // The `shards` and `replicas` arguments are required. If `emergency_repair` is
         // specified, it will enter a completely different mode of repairing a table
         // which has lost half or more of its replicas.
         RECONFIGURE   = 176; // Database|Table, {shards:NUMBER, replicas:NUMBER [,
-                             //                  dry_run:BOOLEAN]
-                             //                 } -> OBJECT
-                             // Database|Table, {shards:NUMBER, replicas:OBJECT [,
-                             //                  primary_replica_tag:STRING,
-                             //                  nonvoting_replica_tags:ARRAY,
-                             //                  dry_run:BOOLEAN]
-                             //                 } -> OBJECT
+        //                  dry_run:BOOLEAN]
+        //                 } -> OBJECT
+        // Database|Table, {shards:NUMBER, replicas:OBJECT [,
+        //                  primary_replica_tag:STRING,
+        //                  nonvoting_replica_tags:ARRAY,
+        //                  dry_run:BOOLEAN]
+        //                 } -> OBJECT
         // Table, {emergency_repair:STRING, dry_run:BOOLEAN} -> OBJECT
         // Balances the table's shards but leaves everything else the same. Can also be
         // applied to an entire database at once.
         REBALANCE     = 179; // Table -> OBJECT
-                             // Database -> OBJECT
+        // Database -> OBJECT
 
         // Ensures that previously issued soft-durability writes are complete and
         // written to disk.
@@ -558,8 +558,8 @@ message Term {
 
         // Set global, database, or table-specific permissions
         GRANT         = 188; //          -> OBJECT
-                             // Database -> OBJECT
-                             // Table    -> OBJECT
+        // Database -> OBJECT
+        // Table    -> OBJECT
 
         // * Secondary indexes OPs
         // Creates a new secondary index with a particular name and definition.
@@ -601,9 +601,9 @@ message Term {
         // and executes the array of terms that Function returns.
         FOR_EACH = 68; // Sequence, Function(1) -> OBJECT
 
-////////////////////////////////////////////////////////////////////////////////
-////////// Special Terms
-////////////////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////////////////////////
+        ////////// Special Terms
+        ////////////////////////////////////////////////////////////////////////////////
 
         // An anonymous function.  Takes an array of numbers representing
         // variables (see [VAR] above), and a [Term] to execute with those in
@@ -713,7 +713,7 @@ message Term {
         // Construct a time from a date and optional timezone or a
         // date+time and optional timezone.
         TIME = 136; // NUMBER, NUMBER, NUMBER, STRING -> PSEUDOTYPE(TIME) |
-                    // NUMBER, NUMBER, NUMBER, NUMBER, NUMBER, NUMBER, STRING -> PSEUDOTYPE(TIME) |
+        // NUMBER, NUMBER, NUMBER, NUMBER, NUMBER, NUMBER, STRING -> PSEUDOTYPE(TIME) |
 
         // Constants for ISO 8601 days of the week.
         MONDAY = 107;    // -> 1
@@ -741,7 +741,7 @@ message Term {
         // Indicates to MERGE to replace, or remove in case of an empty literal, the
         // other object rather than merge it.
         LITERAL = 137; // -> Merging
-                       // JSON -> Merging
+        // JSON -> Merging
 
         // SEQUENCE, STRING -> GROUPED_SEQUENCE | SEQUENCE, FUNCTION -> GROUPED_SEQUENCE
         GROUP = 144;
@@ -860,4 +860,3 @@ message Term {
 //     response = [Datum { type = R_STR; r_str = "The table `tbl` doesn't exist!"; }];
 //     backtrace = [Frame { type = POS; pos = 0; }, Frame { type = POS; pos = 0; }];
 //   }
-
