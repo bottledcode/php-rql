@@ -19,6 +19,7 @@ class Cursor implements Iterator
     private int $currentIndex;
     private bool $isComplete;
     private bool $wasIterated;
+    private int $totalIndex = 0;
 
     public function __construct(
         Connection $connection,
@@ -65,6 +66,7 @@ class Cursor implements Iterator
         }
         $this->wasIterated = true;
         $this->currentIndex++;
+        $this->totalIndex++;
     }
 
     public function valid(): bool
@@ -105,12 +107,13 @@ class Cursor implements Iterator
         }
         $this->currentIndex = 0;
         $this->currentSize = 0;
+        $this->totalIndex = 0;
         $this->currentData = array();
     }
 
     public function key(): mixed
     {
-        return $this->currentIndex;
+        return $this->totalIndex;
     }
 
     public function current(): mixed
