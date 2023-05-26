@@ -73,6 +73,12 @@ use r\Queries\Manipulation\SpliceAt;
 use r\Queries\Manipulation\Values;
 use r\Queries\Manipulation\Without;
 use r\Queries\Math\Add;
+use r\Queries\Math\BitAnd;
+use r\Queries\Math\BitNot;
+use r\Queries\Math\BitOr;
+use r\Queries\Math\BitSal;
+use r\Queries\Math\BitSar;
+use r\Queries\Math\BitXor;
 use r\Queries\Math\Ceil;
 use r\Queries\Math\Div;
 use r\Queries\Math\Downcase;
@@ -1066,6 +1072,89 @@ abstract class ValuedQuery extends Query
     public function match(string|Query $expression): RqlMatch
     {
         return new RqlMatch($this, $expression);
+    }
+
+    /**
+     * A bitwise AND is a binary operation that takes two equal-length binary representations and performs the logical
+     * AND operation on each pair of the corresponding bits, which is equivalent to multiplying them. Thus, if both bits
+     * in the compared position are 1, the bit in the resulting binary representation is 1 (1 × 1 = 1); otherwise, the
+     * result is 0 (1 × 0 = 0 and 0 × 0 = 0).
+     *
+     * @param int|float|Query ...$other
+     * @return BitAnd
+     */
+    public function bitAnd(int|float|Query ...$other): BitAnd
+    {
+        return new BitAnd($this, $other);
+    }
+
+    /**
+     * A bitwise OR is a binary operation that takes two bit patterns of equal length and performs the logical inclusive
+     * OR operation on each pair of corresponding bits. The result in each position is 0 if both bits are 0, while
+     * otherwise the result is 1.
+     *
+     * @param int|float|Query ...$other
+     * @return BitOr
+     */
+    public function bitOr(int|float|Query ...$other): BitOr
+    {
+        return new BitOr($this, $other);
+    }
+
+    /**
+     * A bitwise XOR is a binary operation that takes two bit patterns of equal length and performs the logical
+     * exclusive OR operation on each pair of corresponding bits. The result in each position is 1 if only the first bit
+     * is 1 or only the second bit is 1, but will be 0 if both are 0 or both are 1. In this we perform the comparison of
+     * two bits, being 1 if the two bits are different, and 0 if they are the same.
+     *
+     * @param int|float|Query ...$other
+     * @return BitXor
+     */
+    public function bitXor(int|float|Query ...$other): BitXor
+    {
+        return new BitXor($this, $other);
+    }
+
+    /**
+     * A bitwise NOT, or complement, is a unary operation that performs logical negation on each bit, forming the ones’
+     * complement of the given binary value. Bits that are 0 become 1, and those that are 1 become 0.
+     *
+     * @return BitNot
+     */
+    public function bitNot(): BitNot
+    {
+        return new BitNot($this);
+    }
+
+    /**
+     * In an arithmetic shift (also referred to as signed shift), like a logical shift, the bits that slide off the end
+     * disappear (except for the last, which goes into the carry flag). But in an arithmetic shift, the spaces are
+     * filled in such a way to preserve the sign of the number being slid. For this reason, arithmetic shifts are better
+     * suited for signed numbers in two’s complement format.
+     *
+     * Note: SHL and SAL are the same, and differentiation only happens because SAR and SHR (right shifting) has
+     * differences in their implementation.
+     *
+     * @param int|float|Query ...$other
+     * @return BitSal
+     */
+    public function bitSal(int|float|Query ...$other): BitSal
+    {
+        return new BitSal($this, $other);
+    }
+
+    /**
+     * In an arithmetic shift (also referred to as signed shift), like a logical shift, the bits that slide off the end
+     * disappear (except for the last, which goes into the carry flag). But in an arithmetic shift, the spaces are
+     * filled in such a way to preserve the sign of the number being slid. For this reason, arithmetic shifts are better
+     * suited for signed numbers in two’s complement format.
+     *
+     * @param int|float|Query ...$other
+     * @return BitSar
+     */
+    public function bitSar(int|float|Query ...$other): BitSar
+    {
+        return new BitSar($this, $other);
     }
 
     /**
