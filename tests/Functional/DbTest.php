@@ -11,11 +11,13 @@ use r\Exceptions\RqlServerError;
 
 class DbTest extends TestCase
 {
+    protected mixed $db;
+
     public function setUp(): void
     {
         $this->conn = $this->getConnection();
 
-        $this->db = 'dbTest' . time() . rand(100, 999);
+        $this->db = 'dbTest' . time() . random_int(100, 999);
     }
 
     public function tearDown(): void

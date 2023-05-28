@@ -1,5 +1,5 @@
 {
-  "name": "mbagnall/php-rql",
+  "name": "bottledcode/php-rql",
   "type": "library",
   "description": "A PHP client driver for the RethinkDB query language (ReQL)",
   "keywords": [
@@ -44,7 +44,11 @@
       "rdb/rdb.php"
     ],
     "psr-4": {
-      "r\\": "rdb/",
+      "r\\": "rdb/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
       "r\\Tests\\": "tests/"
     }
   },

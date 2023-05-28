@@ -2,6 +2,7 @@
 
 namespace r\Tests\Functional;
 
+use r\Options\TableInsertOptions;
 use r\Tests\TestCase;
 
 class UpsertTest extends TestCase
@@ -11,7 +12,6 @@ class UpsertTest extends TestCase
         $this->conn = $this->getConnection();
         $this->data = $this->useDataset('Heroes');
         $this->data->populate();
-        $this->opts = array('conflict' => 'replace');
     }
 
     public function tearDown(): void
@@ -22,13 +22,14 @@ class UpsertTest extends TestCase
     public function testUpsertUnchanged()
     {
         $res = $this->db()->table('marvel')->insert(
-            array(
-                    'superhero' => 'Iron Man',
-                    'superpower' => 'Arc Reactor',
-                    'combatPower' => 2.0,
-                    'compassionPower' => 1.5
-                )
-        )->run($this->conn, $this->opts);
+            [
+                'superhero' => 'Iron Man',
+                'superpower' => 'Arc Reactor',
+                'combatPower' => 2.0,
+                'compassionPower' => 1.5
+            ],
+            new TableInsertOptions(conflict: 'update')
+        )->run($this->conn);
 
         $this->assertObStatus(array('unchanged' => 1), $res);
     }
@@ -36,11 +37,12 @@ class UpsertTest extends TestCase
     public function testUpsertReplaced()
     {
         $res = $this->db()->table('marvel')->insert(
-            array(
-                    'superhero' => 'Iron Man',
-                    'superpower' => 'Suit'
-                )
-        )->run($this->conn, $this->opts);
+            [
+                'superhero' => 'Iron Man',
+                'superpower' => 'Suit'
+            ],
+            new TableInsertOptions(conflict: 'update')
+        )->run($this->conn);
 
         $this->assertObStatus(array('replaced' => 1), $res);
     }
@@ -48,11 +50,12 @@ class UpsertTest extends TestCase
     public function testUpsertInserted()
     {
         $res = $this->db()->table('marvel')->insert(
-            array(
-                    'superhero' => 'Pepper',
-                    'superpower' => 'Stark Industries'
-                )
-        )->run($this->conn, $this->opts);
+            [
+                'superhero' => 'Pepper',
+                'superpower' => 'Stark Industries'
+            ],
+            new TableInsertOptions(conflict: 'update')
+        )->run($this->conn);
 
         $this->assertObStatus(array('inserted' => 1), $res);
     }

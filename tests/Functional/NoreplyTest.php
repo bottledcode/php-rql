@@ -2,6 +2,7 @@
 
 namespace r\Tests\Functional;
 
+use r\Options\RunOptions;
 use r\Tests\TestCase;
 
 // use function db;
@@ -18,7 +19,7 @@ class NoreplyTest extends TestCase
     {
         $this->db()->table('t1')
             ->insert(array('id' => 1, 'key' => 'val'))
-            ->run($this->conn, array('noreply' => true));
+            ->run($this->conn, new RunOptions(noreply: true));
 
         $res = $this->db()->table('t1')->getField('key')->run($this->conn);
 

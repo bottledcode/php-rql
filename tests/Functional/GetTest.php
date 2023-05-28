@@ -2,6 +2,7 @@
 
 namespace r\Tests\Functional;
 
+use r\Options\GetAllOptions;
 use r\Tests\TestCase;
 
 // use function \r\expr;
@@ -33,7 +34,7 @@ class GetTest extends TestCase
     public function testGetAllIndex()
     {
         $res = $this->db()->table('marvel')
-            ->getAll('5', array('index' => 'test'))
+            ->getAll('5', new GetAllOptions(index: 'test'))
             ->count()
             ->run($this->conn);
 

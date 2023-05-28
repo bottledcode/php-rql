@@ -10,7 +10,9 @@ abstract class Dataset
     abstract public function populate();
     abstract public function truncate();
 
-    protected $conn;
+    protected Connection $conn;
+
+    protected string $db;
 
     private $mustDelete = true;
 

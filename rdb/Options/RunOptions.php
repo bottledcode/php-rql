@@ -19,6 +19,7 @@ readonly class RunOptions
         public int|null $max_batch_bytes = null,
         public int|null $max_batch_seconds = null,
         public int|null $first_batch_scaledown_factor = null,
+        public bool|null $non_atomic = null,
     ) {
     }
 }

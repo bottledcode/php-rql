@@ -9,14 +9,18 @@ use r\Exceptions\RqlServerError;
 
 class IndexTest extends TestCase
 {
+    protected mixed $index;
+    protected mixed $index2;
+    protected mixed $opts;
+
     public function setUp(): void
     {
         $this->conn = $this->getConnection();
         $this->data = $this->useDataset('Heroes');
         $this->data->populate();
 
-        $this->index = 'index_' . time() . rand(999, 9999);
-        $this->index2 = 'index_' . time() . rand(999, 9999);
+        $this->index = 'index_' . time() . random_int(999, 9999);
+        $this->index2 = 'index_' . time() . random_int(999, 9999);
     }
 
     public function tearDown(): void

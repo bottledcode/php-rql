@@ -6,6 +6,9 @@ use r\Tests\TestCase;
 
 class CursorTest extends TestCase
 {
+    protected mixed $doc;
+    protected mixed $docs;
+
     public function setUp(): void
     {
         $this->conn = $this->getConnection();

@@ -14,6 +14,7 @@ use r\Tests\TestCase;
 
 class ControlTest extends TestCase
 {
+    protected mixed $data2;
     public function setUp(): void
     {
         $this->conn = $this->getConnection();

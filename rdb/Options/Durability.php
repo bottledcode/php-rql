@@ -2,7 +2,14 @@
 
 namespace r\Options;
 
-enum Durability: string {
+use PHPUnit\Util\Json;
+
+enum Durability: string implements \JsonSerializable {
     case Hard = 'hard';
     case Soft = 'soft';
+
+    public function jsonSerialize(): string
+    {
+        return $this->value;
+    }
 }

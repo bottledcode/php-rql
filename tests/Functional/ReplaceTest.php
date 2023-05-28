@@ -3,6 +3,7 @@
 
 namespace r\Tests\Functional;
 
+use r\Options\RunOptions;
 use r\Tests\TestCase;
 
 // use function \r\js;
@@ -36,7 +37,7 @@ class ReplaceTest extends TestCase
         $res = $this->db()->table('marvel')
             ->get('Wolverine')
             ->replace(array('superhero' => 'Wolverine', 'age' => \r\js('35')))
-            ->run($this->conn, array('non_atomic' => true));
+            ->run($this->conn, new RunOptions(non_atomic: true));
 
         $this->assertObStatus(array('replaced' => 1), $res);
     }

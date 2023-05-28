@@ -2,13 +2,16 @@
 
 namespace r\Tests;
 
+use r\Connection;
 use r\ConnectionOptions;
 
 use function r\connect;
 
 class TestCase extends \PHPUnit\Framework\TestCase
 {
-    protected $datasets = array();
+    protected array $datasets = array();
+    protected Connection $conn;
+    protected mixed $data;
 
     public function setUp(): void
     {

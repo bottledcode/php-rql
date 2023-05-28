@@ -2,6 +2,8 @@
 
 namespace r\Tests\Functional;
 
+use r\Options\Durability;
+use r\Options\RunOptions;
 use r\Tests\TestCase;
 
 // use function \r\row;
@@ -9,12 +11,14 @@ use r\Tests\TestCase;
 
 class UpdateTest extends TestCase
 {
+    protected RunOptions $opts;
+
     public function setUp(): void
     {
         $this->conn = $this->getConnection();
         $this->data = $this->useDataset('Heroes');
         $this->data->populate();
-        $this->opts = array('conflict' => 'replace');
+        $this->opts = new RunOptions();
     }
 
     public function tearDown(): void
@@ -63,7 +67,7 @@ class UpdateTest extends TestCase
 
         $res = $this->db()->table('marvel')->update(
             array('age' => \r\row('age')->add(\r\js('1')))
-        )->run($this->conn, array('durability' => 'soft', 'non_atomic' => true));
+        )->run($this->conn, new RunOptions(durability: Durability::Soft, non_atomic: true));
 
         $this->assertObStatus(array('replaced' => 3), $res);
     }

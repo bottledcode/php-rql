@@ -3,6 +3,7 @@
 namespace r\Tests\Functional;
 
 use r\Exceptions\RqlServerError;
+use r\Options\RunOptions;
 use r\Tests\TestCase;
 
 // use function \r\expr;
@@ -60,7 +61,7 @@ class ConnectionTest extends TestCase
 
     public function testNoReplyWait()
     {
-        \r\js('while(true) {}', 2.0)->run($this->conn, array('noreply' => true));
+        \r\js('while(true) {}', 2.0)->run($this->conn, new RunOptions(noreply: true));
         $t = microtime(true);
         $this->conn->noreplyWait();
 
@@ -69,7 +70,7 @@ class ConnectionTest extends TestCase
 
     public function testNoReplyReconnect()
     {
-        \r\js('while(true) {}', 2.0)->run($this->conn, array('noreply' => true));
+        \r\js('while(true) {}', 2.0)->run($this->conn, new RunOptions(noreply: true));
         $t = microtime(true);
         $this->conn->reconnect();
 
@@ -78,7 +79,7 @@ class ConnectionTest extends TestCase
 
     public function testNoReplyClose()
     {
-        \r\js('while(true) {}', 2.0)->run($this->conn, array('noreply' => true));
+        \r\js('while(true) {}', 2.0)->run($this->conn, new RunOptions(noreply: true));
         $t = microtime(true);
         $this->conn->close();
 
@@ -87,7 +88,7 @@ class ConnectionTest extends TestCase
 
     public function testNoReplyCloseImmediately()
     {
-        \r\js('while(true) {}', 2.0)->run($this->conn, array('noreply' => true));
+        \r\js('while(true) {}', 2.0)->run($this->conn, new RunOptions(noreply: true));
         $t = microtime(true);
         $this->conn->close(false);
 
@@ -96,7 +97,7 @@ class ConnectionTest extends TestCase
 
     public function testNoReplyReconnectImmediately()
     {
-        \r\js('while(true) {}', 2.0)->run($this->conn, array('noreply' => true));
+        \r\js('while(true) {}', 2.0)->run($this->conn, new RunOptions(noreply: true));
         $t = microtime(true);
         $this->conn->reconnect(false);
 

@@ -51,16 +51,9 @@ abstract class Query extends DatumConverter
         return array($this->getTermType(), $args, (object)$optargs);
     }
 
-    public function run(Connection $connection, RunOptions $options = new RunOptions()): Cursor|array|string|null|\DateTimeInterface|float|int|bool
+    public function run(Connection $connection, RunOptions $options = new RunOptions(), string|null &$profile = null): Cursor|array|string|null|\DateTimeInterface|float|int|bool
     {
         return $connection->run($this, $options, $profile);
-    }
-
-    public function profile(Connection $connection, array $options = [], Cursor|array|string|null &$result = null)
-    {
-        $options['profile'] = true;
-        $result = $connection->run($this, $options, $profile);
-        return $profile;
     }
 
     public function info(): Info

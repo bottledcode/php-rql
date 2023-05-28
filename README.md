@@ -5,7 +5,7 @@ A PHP client driver for the RethinkDB query language (ReQL).
 
 PHP-RQL is licensed under the terms of the Apache License 2.0 http://www.apache.org/licenses/LICENSE-2.0
 
-This is a fork of the original PHP-RQL project, with specific changes to be more PHP 8.1 friendly.
+This is a fork of the original PHP-RQL project, with specific changes to be more PHP 8.2+ friendly.
 
 Continuous Integration
 ----------------------

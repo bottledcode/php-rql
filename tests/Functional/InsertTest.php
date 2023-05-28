@@ -2,7 +2,10 @@
 
 namespace r\Tests\Functional;
 
+use r\Options\TableInsertOptions;
 use r\Tests\TestCase;
+
+use function r\expr;
 
 class InsertTest extends TestCase
 {
@@ -11,7 +14,6 @@ class InsertTest extends TestCase
         $this->conn = $this->getConnection();
         $this->data = $this->useDataset('Heroes');
         $this->data->populate();
-        $this->opts = array();
     }
 
     public function tearDown(): void
@@ -23,12 +25,10 @@ class InsertTest extends TestCase
     {
         $res = $this->db()->table('marvel')->insert(
             array(
-                    'superhero' => 'Iron Man',
-                ),
-            array(
-                    'conflict' => function($x, $k, $o) { return \r\expr(null); }
-                )
-        )->run($this->conn, $this->opts);
+                'superhero' => 'Iron Man',
+            ),
+            new TableInsertOptions(conflict: static fn($x, $k, $o) => expr(null))
+        )->run($this->conn);
 
         $this->assertObStatus(array('deleted' => 1), $res);
     }

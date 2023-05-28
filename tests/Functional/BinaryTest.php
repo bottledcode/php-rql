@@ -2,6 +2,8 @@
 
 namespace r\Tests\Functional;
 
+use r\Options\FormatMode;
+use r\Options\RunOptions;
 use r\Tests\TestCase;
 
 // use function \r\binary;
@@ -22,7 +24,7 @@ class BinaryTest extends TestCase
     {
         $this->assertEquals(
             'abcdefg',
-            \r\binary('abcdefg')->run($this->conn, array('binaryFormat' => 'native'))
+            \r\binary('abcdefg')->run($this->conn, new RunOptions(binary_format: FormatMode::Native))
         );
     }
 
@@ -30,7 +32,7 @@ class BinaryTest extends TestCase
     {
         $this->assertEquals(
             array('$reql_type$' => 'BINARY', 'data' => 'YWJjZGVmZw=='),
-            (array)\r\binary('abcdefg')->run($this->conn, array('binaryFormat' => 'raw'))
+            (array)\r\binary('abcdefg')->run($this->conn, new RunOptions(binary_format: FormatMode::Raw))
         );
     }
 }

@@ -160,33 +160,49 @@ class DatumConverter
             if ($hasNonNumericKey) {
                 if ($mustUseMakeTerm) {
                     return new MakeObject($datumArray);
-                } else {
-                    return new ObjectDatum($datumArray);
                 }
-            } else {
-                if ($mustUseMakeTerm) {
-                    return new MakeArray($datumArray);
-                } else {
-                    return new ArrayDatum($datumArray);
-                }
+
+                return new ObjectDatum($datumArray);
             }
-        } elseif (is_null($v)) {
+
+            if ($mustUseMakeTerm) {
+                return new MakeArray($datumArray);
+            }
+
+            return new ArrayDatum($datumArray);
+        }
+
+        if (is_null($v)) {
             return new NullDatum();
-        } elseif (is_bool($v)) {
+        }
+
+        if (is_bool($v)) {
             return new BoolDatum($v);
-        } elseif (is_int($v) || is_float($v)) {
+        }
+
+        if (is_int($v) || is_float($v)) {
             return new NumberDatum($v);
-        } elseif (is_string($v)) {
+        }
+
+        if (is_string($v)) {
             return new StringDatum($v);
-        } elseif (is_object($v) && is_subclass_of($v, Query::class)) {
+        }
+
+        if (is_object($v) && is_subclass_of($v, Query::class)) {
             return $v;
-        } elseif (is_object($v) && (is_subclass_of($v, \DateTimeInterface::class))) {
+        }
+
+        if (is_object($v) && (is_subclass_of($v, \DateTimeInterface::class))) {
             // PHP prior to 5.5.0 doens't have DateTimeInterface, so we test for DateTime directly as well ^^^^^
             $iso8601 = $v->format(DateTimeInterface::ATOM);
             return new Iso8601($iso8601);
-        } else {
-            throw new RqlDriverError("Unhandled type " . get_class($v));
         }
+
+        if(is_object($v) && class_implements($v, JsonSerializable::class)) {
+            return $this->nativeToDatum($v->jsonSerialize());
+        }
+
+        throw new RqlDriverError("Unhandled type " . get_class($v));
     }
 
     public function nativeToFunction(Query|callable $f): RFunction|\r\Query

@@ -3,48 +3,24 @@
 namespace r\Tests\Functional;
 
 use DateTime;
+use r\Options\FormatMode;
 use r\Options\Iso8601Options;
+use r\Options\RunOptions;
 use r\Options\SliceOptions;
 use r\Tests\TestCase;
 
-// use function \r\expr;
-// use function \r\time as rTime;
-// use function \r\epochTime;
-// use function \r\iso8601;
-// use function \r\now;
-// use function \r\sunday;
-// use function \r\monday;
-// use function \r\tuesday;
-// use function \r\wednesday;
-// use function \r\thursday;
-// use function \r\friday;
-// use function \r\saturday;
-// use function \r\january;
-// use function \r\february;
-// use function \r\march;
-// use function \r\april;
-// use function \r\may;
-// use function \r\june;
-// use function \r\july;
-// use function \r\august;
-// use function \r\september;
-// use function \r\october;
-// use function \r\november;
-// use function \r\december;
-
 class DateTest extends TestCase
 {
-    public function testTimeDate()
+    public function testTimeDate(): void
     {
         $this->assertTrue(
             \r\now()->sub(
-                \r\time(floatval(date("Y")), floatval(date("m")), floatval(date("d")), date("P"))
-            )->lt(24*60*60 + 10)
-            ->run($this->conn)
+                \r\time((float)date("Y"), (float)date("m"), (float)date("d"), date("P"))
+            )->lt(24 * 60 * 60 + 10)->run($this->conn)
         );
     }
 
-    public function testTimeTime()
+    public function testTimeTime(): void
     {
         $this->assertTrue(
             \r\now()->sub(
@@ -57,27 +33,26 @@ class DateTest extends TestCase
                     floatval(date("s")),
                     date("P")
                 )
-            )->lt(24*60*60 + 10)
-            ->run($this->conn)
+            )->lt(24 * 60 * 60 + 10)->run($this->conn)
         );
     }
 
-    public function testEpochTimeSub()
+    public function testEpochTimeSub(): void
     {
         $this->assertTrue(\r\now()->sub(\r\epochTime(time()))->lt(10)->run($this->conn));
     }
 
-    public function testToEpochTime()
+    public function testToEpochTime(): void
     {
         $this->assertTrue(\r\now()->toEpochTime()->sub(time())->lt(10)->run($this->conn));
     }
 
-    public function testIso8601Sub()
+    public function testIso8601Sub(): void
     {
         $this->assertTrue(\r\now()->sub(\r\iso8601(date('c')))->lt(10)->run($this->conn));
     }
 
-    public function testToIso8601()
+    public function testToIso8601(): void
     {
         $this->assertEquals(
             date('c', 111111),
@@ -85,27 +60,25 @@ class DateTest extends TestCase
         );
     }
 
-    public function testToIso8601DefaultTZ()
+    public function testToIso8601DefaultTZ(): void
     {
         $this->assertEquals(
             date('c', 1),
-            \r\iso8601('1970-01-01T00:00:01+00:00', new Iso8601Options(defaultTimezone: '+00:00'))
-                ->toIso8601()->run($this->conn)
+            \r\iso8601('1970-01-01T00:00:01+00:00', new Iso8601Options(defaultTimezone: '+00:00'))->toIso8601()->run(
+                    $this->conn
+                )
         );
     }
 
-    public function testToIso8601InTZ()
+    public function testToIso8601InTZ(): void
     {
         $this->assertEquals(
             23.0,
-            \r\time(2000, 1, 1, 0, 0, 0, '+00:00')
-                ->inTimezone('-01:00')
-                ->hours()
-                ->run($this->conn)
+            \r\time(2000, 1, 1, 0, 0, 0, '+00:00')->inTimezone('-01:00')->hours()->run($this->conn)
         );
     }
 
-    public function testTimeTimezone()
+    public function testTimeTimezone(): void
     {
         $this->assertEquals(
             '+00:00',
@@ -113,28 +86,28 @@ class DateTest extends TestCase
         );
     }
 
-    public function testDurringPast()
+    public function testDurringPast(): void
     {
         $this->assertFalse(
             \r\now()->during(\r\now()->sub(10), \r\now()->sub(5))->run($this->conn)
         );
     }
 
-    public function testDurringPresent()
+    public function testDurringPresent(): void
     {
         $this->assertTrue(
             \r\now()->during(\r\now()->sub(10), \r\now()->add(10))->run($this->conn)
         );
     }
 
-    public function testDurringFuture()
+    public function testDurringFuture(): void
     {
         $this->assertFalse(
             \r\now()->during(\r\now()->add(10), \r\now()->add(10))->run($this->conn)
         );
     }
 
-    public function testDurringEpochNowAndFuture()
+    public function testDurringEpochNowAndFuture(): void
     {
         $this->assertTrue(
             \r\epochTime(111111)->during(
@@ -144,7 +117,7 @@ class DateTest extends TestCase
         );
     }
 
-    public function testDurringEpochPastAndNow()
+    public function testDurringEpochPastAndNow(): void
     {
         $this->assertFalse(
             \r\epochTime(111111)->during(
@@ -154,7 +127,7 @@ class DateTest extends TestCase
         );
     }
 
-    public function testDurringEpochNowAndFutureLeftBound()
+    public function testDurringEpochNowAndFutureLeftBound(): void
     {
         $this->assertFalse(
             \r\epochTime(111111)->during(
@@ -165,7 +138,7 @@ class DateTest extends TestCase
         );
     }
 
-    public function testDurringEpochRightBoundClosed()
+    public function testDurringEpochRightBoundClosed(): void
     {
         $this->assertTrue(
             \r\epochTime(111111)->during(
@@ -176,81 +149,69 @@ class DateTest extends TestCase
         );
     }
 
-    public function testEpochDateHours()
+    public function testEpochDateHours(): void
     {
         $this->assertEquals(0.0, \r\epochTime(111111)->date()->hours()->run($this->conn));
     }
 
-    public function testEpochDateYears()
+    public function testEpochDateYears(): void
     {
         $this->assertEquals(1970.0, \r\epochTime(111111)->date()->year()->run($this->conn));
-
     }
 
-    public function testEpochTimeOfDay()
+    public function testEpochTimeOfDay(): void
     {
         $this->assertEquals(24711.0, \r\epochTime(111111)->timeOfDay()->run($this->conn));
-
     }
 
-    public function testEpochYear()
+    public function testEpochYear(): void
     {
         $this->assertEquals(1970.0, \r\epochTime(111111)->year()->run($this->conn));
-
     }
 
-    public function testEpochMonth()
+    public function testEpochMonth(): void
     {
         $this->assertEquals(1.0, \r\epochTime(111111)->month()->run($this->conn));
-
     }
 
-    public function testEpochDay()
+    public function testEpochDay(): void
     {
         $this->assertEquals(2.0, \r\epochTime(111111)->day()->run($this->conn));
-
     }
 
-    public function testEpochDayofWeek()
+    public function testEpochDayofWeek(): void
     {
         $this->assertEquals(5.0, \r\epochTime(111111)->dayOfWeek()->run($this->conn));
-
     }
 
-    public function testEpochDayofYear()
+    public function testEpochDayofYear(): void
     {
         $this->assertEquals(2.0, \r\epochTime(111111)->dayOfYear()->run($this->conn));
-
     }
 
-    public function testEpochHours()
+    public function testEpochHours(): void
     {
         $this->assertEquals(6.0, \r\epochTime(111111)->hours()->run($this->conn));
-
     }
 
-    public function testEpochMinutes()
+    public function testEpochMinutes(): void
     {
         $this->assertEquals(51.0, \r\epochTime(111111)->minutes()->run($this->conn));
-
     }
 
-    public function testEpochSeconds()
+    public function testEpochSeconds(): void
     {
         $this->assertEquals(50.0, \r\epochTime(111110)->seconds()->run($this->conn));
-
     }
 
     public function testMonday()
     {
         $this->assertEquals(1.0, \r\monday()->run($this->conn));
-
     }
 
     public function testTuesday()
     {
         $this->assertEquals(2.0, \r\tuesday()->run($this->conn));
-
     }
 
     public function testWednesday()
@@ -406,8 +367,7 @@ class DateTest extends TestCase
     {
         $this->assertEquals(
             new DateTime('2000-01-01 -0000'),
-            \r\time(2000, 1, 1, 0, 0, 0, "+00:00")
-                ->run($this->conn, array('timeFormat' => 'native'))
+            \r\time(2000, 1, 1, 0, 0, 0, "+00:00")->run($this->conn, new RunOptions(time_format: FormatMode::Native))
         );
     }
 
@@ -419,8 +379,7 @@ class DateTest extends TestCase
                 'epoch_time' => 946684800.0,
                 'timezone' => "+00:00"
             ),
-            (array)\r\time(2000, 1, 1, 0, 0, 0, '+00:00')
-                ->run($this->conn, array('timeFormat' => 'raw'))
+            (array)\r\time(2000, 1, 1, 0, 0, 0, '+00:00')->run($this->conn, new RunOptions(time_format: FormatMode::Raw))
         );
     }
 
@@ -428,8 +387,7 @@ class DateTest extends TestCase
     {
         $this->assertEquals(
             new DateTime('2000-01-01 05:45:32 CDT'),
-            \r\time(2000, 1, 1, 5, 45, 32, "-05:00")
-                ->run($this->conn, array('timeFormat' => 'native'))
+            \r\time(2000, 1, 1, 5, 45, 32, "-05:00")->run($this->conn, new RunOptions(time_format: FormatMode::Native))
         );
     }
 }

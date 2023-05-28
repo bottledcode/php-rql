@@ -356,7 +356,7 @@ class Connection extends DatumConverter
 
     private function createDatumFromResponse($response
     ): ObjectDatum|StringDatum|BoolDatum|NumberDatum|NullDatum|ArrayDatum {
-        return $this->decodedJSONToDatum($response['r'][0]);
+        return self::decodedJSONToDatum($response['r'][0]);
     }
 
     public function run(
@@ -402,14 +402,14 @@ class Connection extends DatumConverter
         }
 
         if (isset($response['p'])) {
-            $profile = $this->decodedJSONToDatum($response['p'])->toNative($toNativeOptions);
+            $profile = self::decodedJSONToDatum($response['p'])->toNative($toNativeOptions);
         }
 
         if ($type === ResponseResponseType::PB_SUCCESS_ATOM) {
             return $this->createDatumFromResponse($response)->toNative($toNativeOptions);
-        } else {
-            return $this->createCursorFromResponse($response, $token, $response['n'], $toNativeOptions);
         }
+
+        return $this->createCursorFromResponse($response, $token, $response['n'], $toNativeOptions);
     }
 
     private function convertOptions(array|object|null $options): array

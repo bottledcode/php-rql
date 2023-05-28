@@ -2,7 +2,7 @@
 
 namespace r\Options;
 
-enum HttpResultFormat: string
+enum HttpResultFormat: string implements \JsonSerializable
 {
     /**
      * always return a string.
@@ -32,4 +32,9 @@ enum HttpResultFormat: string
      * - anything else: as text
      */
     case Auto = 'auto';
+
+    public function jsonSerialize(): string
+    {
+        return $this->value;
+    }
 }
