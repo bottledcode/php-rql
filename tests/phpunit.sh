@@ -18,7 +18,7 @@ export RDB_HOST
 export RDB_PORT
 export RDB_DB
 
-
+composer require amphp/socket
 
 # run tests
 php $BASEDIR/tests/TestHelpers/createDb.php
