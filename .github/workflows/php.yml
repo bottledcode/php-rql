@@ -5,6 +5,7 @@ on:
     branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
+  merge_group:
 
 permissions:
   contents: read
@@ -13,7 +14,12 @@ jobs:
   build:
 
     runs-on: self-hosted
-
+    services:
+      rethinkdb:
+        image: rethinkdb:2.4.2
+        ports:
+          - 28015:28015
+          - 29015:29015
     steps:
     - uses: actions/checkout@v3
 
@@ -21,9 +27,8 @@ jobs:
       uses: shivammathur/setup-php@v2
       with:
         php-version: '8.2'
-
-    - name: Start Rethinkdb
-      run: docker run -d -p 28015:28015 -p 8080:8080 rethinkdb:2.4.2
+      env:
+        runner: self-hosted
 
     - name: Validate composer.json and composer.lock
       run: composer validate --strict
