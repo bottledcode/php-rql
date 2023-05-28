@@ -101,7 +101,7 @@ class Cursor implements Iterator
     {
         if (!$this->isComplete) {
             // Cancel the request
-            $this->connection->stopQuery($this->token);
+            //$this->connection->stopQuery($this->token);
             $this->isComplete = true;
         }
         $this->currentIndex = 0;

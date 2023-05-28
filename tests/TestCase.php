@@ -32,7 +32,7 @@ class TestCase extends \PHPUnit\Framework\TestCase
 			);
 		}
 		return connect(
-			new ConnectionOptions(host: getenv('RDB_HOST'), port: getenv('RDB_PORT'), db: getenv('RDB_DB'))
+			new ConnectionOptions(host: getenv('RDB_HOST') ?: 'localhost', port: getenv('RDB_PORT') ?: 28015, db: getenv('RDB_DB') ?: 'test')
 		);
 	}
 

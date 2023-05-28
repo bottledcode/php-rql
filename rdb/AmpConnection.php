@@ -227,14 +227,22 @@ class AmpConnection extends Connection
 				throw new RqlDriverError('Unexpected response received from server: ' . json_encode($response));
 			}
 
-			[$check, $respond, $query] = $handler;
-			if ($check) {
-				$this->checkResponse($response, $token, $query);
+			[$check, $respond, $query, $error] = $handler;
+			$errored = false;
+			try {
+				if (!$check) {
+					$this->checkResponse($response, $query);
+				}
+			} catch (\Throwable $e) {
+				$error($e);
+				$errored = true;
+			} finally {
+				unset($this->activeTokens[$token]);
 			}
 
-			unset($this->activeTokens[$token]);
-
-			$respond($response);
+			if (!$errored) {
+				$respond($response);
+			}
 
 			$this->onReceive();
 		});
@@ -270,7 +278,7 @@ class AmpConnection extends Connection
 	private function readStr(): string
 	{
 		if ($this->buffer->isEmpty()) {
-			foreach(array_filter(explode("\0", $this->socket->read())) as $value) {
+			foreach (array_filter(explode("\0", $this->socket->read())) as $value) {
 				$this->buffer->enqueue($value);
 			}
 		}
