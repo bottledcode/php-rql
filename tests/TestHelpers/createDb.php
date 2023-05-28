@@ -5,11 +5,11 @@ use r\Options\TableCreateOptions;
 
 include __DIR__ . '../../../vendor/autoload.php';
 
-$conn = \r\connect(new \r\ConnectionOptions(host: getenv('RDB_HOST'), port: getenv('RDB_PORT')));
-$db = getenv('RDB_DB');
+$conn = \r\connect(new \r\ConnectionOptions(host: getenv('RDB_HOST') ?: 'localhost', port: getenv('RDB_PORT') ?: 28015));
+$db = getenv('RDB_DB') ?: ('test-'. random_int(0, 100000));
 $res = r\dbCreate($db)->run($conn);
 
-if ($res['dbs_created'] !== 1.0) {
+if ($res['dbs_created'] !== 1) {
     echo 'Error creating DB' . PHP_EOL;
     exit;
 }

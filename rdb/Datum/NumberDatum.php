@@ -7,15 +7,15 @@ use r\Exceptions\RqlDriverError;
 
 class NumberDatum extends Datum
 {
-    public function encodeServerRequest(): float
+    public function encodeServerRequest(): float|int
     {
-        return (float)$this->getValue();
+        return $this->getValue();
     }
 
-    public static function decodeServerResponse(mixed $json): NumberDatum
+    public static function decodeServerResponse(float|int $json): NumberDatum
     {
         $result = new NumberDatum();
-        $result->setValue((float)$json);
+        $result->setValue($json);
         return $result;
     }
 
