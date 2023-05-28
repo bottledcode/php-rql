@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash -ex
 
 # update dependencies
 PWD=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
@@ -18,10 +18,14 @@ export RDB_HOST
 export RDB_PORT
 export RDB_DB
 
-php $BASEDIR/tests/TestHelpers/createDb.php
+
 
 # run tests
-$BASEDIR/vendor/bin/phpunit -c $PWD/phpunit.xml --colors=always "$@"
+php $BASEDIR/tests/TestHelpers/createDb.php
+ASYNC=yes /usr/bin/time -v $BASEDIR/vendor/bin/phpunit -c $PWD/phpunit.xml --colors=always "$@"
+php $BASEDIR/tests/TestHelpers/deleteDb.php
+php $BASEDIR/tests/TestHelpers/createDb.php
+ASYNC=no /usr/bin/time -v $BASEDIR/vendor/bin/phpunit -c $PWD/phpunit.xml --colors=always "$@"
 STATUS=$?
 
 #remove db

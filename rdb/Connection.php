@@ -16,7 +16,7 @@ use r\ProtocolBuffer\QueryQueryType;
 use r\ProtocolBuffer\ResponseResponseType;
 use r\Queries\Dbs\Db;
 
-class Connection extends DatumConverter
+class Connection extends DatumConverter implements ConnectionInterface
 {
     public string $defaultDbName;
     private $socket;

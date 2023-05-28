@@ -33,7 +33,8 @@
   "require": {
     "php": ">=8.2",
     "ext-json": "*",
-    "ext-openssl": "*"
+    "ext-openssl": "*",
+    "amphp/socket": "^2.1"
   },
   "require-dev": {
     "phpunit/phpunit": "~9.5",

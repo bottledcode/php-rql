@@ -22,7 +22,7 @@ class Cursor implements Iterator
     private int $totalIndex = 0;
 
     public function __construct(
-        Connection $connection,
+        Connection|AmpConnection $connection,
         array $initialResponse,
         int $token,
         array $notes,
@@ -41,14 +41,13 @@ class Cursor implements Iterator
 
     private function setBatch(array $response): void
     {
-        $dc = new DatumConverter;
         $type = ResponseResponseType::tryFrom($response['t']);
         $this->isComplete = $type === ResponseResponseType::PB_SUCCESS_SEQUENCE;
         $this->currentIndex = 0;
         $this->currentSize = \count($response['r']);
         $this->currentData = [];
         foreach ($response['r'] as $row) {
-            $this->currentData[] = $dc->decodedJSONToDatum($row);
+            $this->currentData[] = DatumConverter::decodedJSONToDatum($row);
         }
     }
 

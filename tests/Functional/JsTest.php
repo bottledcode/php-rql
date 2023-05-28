@@ -19,6 +19,8 @@ class JsTest extends TestCase
         $this->expectException(RqlServerError::class);
         $this->expectExceptionMessage('Runtime error: JavaScript query `while(true) {}` timed out after 1.300 seconds');
 
+		$fiber = \Fiber::getCurrent();
+
         \r\js('while(true) {}', 1.3)->run($this->conn);
     }
 }

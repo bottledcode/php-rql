@@ -120,6 +120,11 @@ function connect(
 	return new Connection($connectionOptions);
 }
 
+function connectAsync(ConnectionOptions $connectionOptions): AmpConnection
+{
+	return new AmpConnection($connectionOptions);
+}
+
 /**
  * Reference a database.
  *
@@ -651,7 +656,7 @@ function not(bool|Query $expr): Not
  */
 function bitAnd(int|float|Query $left, int|float|Query ...$other): BitAnd
 {
-    return new BitAnd($left, $other);
+	return new BitAnd($left, $other);
 }
 
 /**
@@ -665,7 +670,7 @@ function bitAnd(int|float|Query $left, int|float|Query ...$other): BitAnd
  */
 function bitOr(int|float|Query $left, int|float|Query ...$other): BitOr
 {
-    return new BitOr($left, $other);
+	return new BitOr($left, $other);
 }
 
 /**
@@ -680,7 +685,7 @@ function bitOr(int|float|Query $left, int|float|Query ...$other): BitOr
  */
 function bitXor(int|float|Query $left, int|float|Query ...$other): BitXor
 {
-    return new BitXor($left, $other);
+	return new BitXor($left, $other);
 }
 
 /**
@@ -692,7 +697,7 @@ function bitXor(int|float|Query $left, int|float|Query ...$other): BitXor
  */
 function bitNot(int|float|Query $value): BitNot
 {
-    return new BitNot($value);
+	return new BitNot($value);
 }
 
 /**
@@ -710,7 +715,7 @@ function bitNot(int|float|Query $value): BitNot
  */
 function bitSal(int|float|Query $left, int|float|Query ...$other): BitSal
 {
-    return new BitSal($left, $other);
+	return new BitSal($left, $other);
 }
 
 /**
@@ -725,7 +730,7 @@ function bitSal(int|float|Query $left, int|float|Query ...$other): BitSal
  */
 function bitSar(int|float|Query $left, int|float|Query ...$other): BitSar
 {
-    return new BitSar($left, $other);
+	return new BitSar($left, $other);
 }
 
 /**
