@@ -2,10 +2,7 @@
 
 namespace r\Queries\Misc;
 
-use r\Datum\BoolDatum;
 use r\Datum\StringDatum;
-use r\Options\GrantOptions;
-use r\Options\GrantPermission;
 use r\ProtocolBuffer\TermTermType;
 use r\Queries\Dbs\Db;
 use r\Queries\Tables\Table;
