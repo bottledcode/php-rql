@@ -17,6 +17,15 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+    - name: Setup PHP and disable opcache
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: opcache
+
+    - name: Start Rethinkdb
+      run: docker run -d -p 28015:28015 -p 8080:8080 rethinkdb:2.4.2
+
     - name: Validate composer.json and composer.lock
       run: composer validate --strict
 
@@ -31,9 +40,6 @@ jobs:
 
     - name: Install dependencies
       run: composer install --prefer-dist --no-progress
-
-    # Add a test script to composer.json, for instance: "test": "vendor/bin/phpunit"
-    # Docs: https://getcomposer.org/doc/articles/scripts.md
 
     - name: Run test suite
       run: composer test
