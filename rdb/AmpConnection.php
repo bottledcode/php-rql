@@ -214,7 +214,19 @@ class AmpConnection extends Connection
 				throw new RqlDriverError('Invalid response from server: Invalid token.');
 			}
 			$size = $header['size'];
-			$response = $this->socket->read(limit: $size);
+            $partialResponse = '';
+            continue_it:
+            $response = $this->socket->read(limit: $size);
+
+            if(strlen($response) !== $size) {
+                $partialResponse .= $response;
+                $size -= strlen($response);
+                goto continue_it;
+            }
+
+            if(!empty($partialResponse)) {
+                $response = $partialResponse . $response;
+            }
 
 			try {
 				$response = json_decode($response, true, flags: JSON_THROW_ON_ERROR);
