@@ -207,7 +207,20 @@ class AmpConnection extends Connection
 	private function onReceive(): Future
 	{
 		return async(function () {
-			$response = $this->socket->read(limit: 4 + 8);
+            $response = '';
+            $remaining = 4+8;
+            header_read:
+            $partialResponse = $this->socket->read(limit: $remaining);
+            if($partialResponse === null || $partialResponse === false) {
+                throw new RqlDriverError('RethinkDB: Broken Pipe.');
+            }
+            if(strlen($response) <= $remaining) {
+                $response .= $partialResponse;
+                $remaining -= strlen($partialResponse);
+                if(strlen($response) < 4+8) {
+                    goto header_read;
+                }
+            }
 			$header = unpack('Vtoken/Vtoken2/Vsize', $response ?? '');
 			$token = $header['token'];
 			if ($header['token2'] !== 0) {
@@ -289,12 +302,17 @@ class AmpConnection extends Connection
 
 	private function readStr(): string
 	{
-		if ($this->buffer->isEmpty()) {
-			foreach (array_filter(explode("\0", $this->socket->read())) as $value) {
-				$this->buffer->enqueue($value);
-			}
-		}
-		return $this->buffer->dequeue();
+        continue_it:
+        if($this->buffer->isEmpty()) {
+            $response = $this->socket->read();
+            foreach(array_filter(explode("\0", $response)) as $value) {
+                $this->buffer->enqueue($value);
+            }
+        }
+        if($this->buffer->isEmpty()) {
+            goto continue_it;
+        }
+        return $this->buffer->dequeue();
 	}
 
 	public function __destruct()
