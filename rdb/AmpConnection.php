@@ -257,7 +257,7 @@ class AmpConnection extends Connection
 			}
 
 			$this->onReceive();
-		});
+		})->ignore();
 	}
 
 	private function checkResponse(array $response, Query $query = null): void
