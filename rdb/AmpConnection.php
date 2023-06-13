@@ -6,6 +6,8 @@ use Amp\DeferredFuture;
 use Amp\Future;
 use Amp\Socket\ConnectContext;
 use Amp\Socket\Socket;
+use Amp\Sync\LocalMutex;
+use Amp\Sync\Mutex;
 use r\Datum\ArrayDatum;
 use r\Datum\BoolDatum;
 use r\Datum\NullDatum;
@@ -95,22 +97,22 @@ class AmpConnection extends Connection
 			$handshake = new Handshake($this->user, $this->password);
 			$handshakeResponse = null;
 
-			getNext:
-			try {
-				$msg = $handshake->nextMessage($handshakeResponse);
-			} catch (\Throwable $e) {
-				$this->close(false);
-				throw $e;
-			}
-			if ($msg === null) {
-				$this->onReceive();
-				return;
-			}
-			if ($msg !== '') {
-				$this->sendStr($msg);
-			}
-			$handshakeResponse = $this->readStr();
-			goto getNext;
+            while(true) {
+                try {
+                    $msg = $handshake->nextMessage($handshakeResponse);
+                } catch (\Throwable $e) {
+                    $this->close(false);
+                    throw $e;
+                }
+                if ($msg === null) {
+                    $this->onReceive();
+                    return;
+                }
+                if ($msg !== '') {
+                    $this->sendStr($msg);
+                }
+                $handshakeResponse = $this->readStr();
+            }
 		});
 	}
 
@@ -207,70 +209,74 @@ class AmpConnection extends Connection
 	private function onReceive(): Future
 	{
 		return async(function () {
-            $response = '';
-            $remaining = 4+8;
-            header_read:
-            $partialResponse = $this->socket->read(limit: $remaining);
-            if($partialResponse === null || $partialResponse === false) {
-                throw new RqlDriverError('RethinkDB: Broken Pipe.');
-            }
-            if(strlen($response) <= $remaining) {
-                $response .= $partialResponse;
-                $remaining -= strlen($partialResponse);
-                if(strlen($response) < 4+8) {
-                    goto header_read;
+            while(true) {
+                $mutex = new LocalMutex();
+                $lock = $mutex->acquire();
+                $response = '';
+                $remaining = 4 + 8;
+                header_read:
+                $partialResponse = $this->socket->read(limit: $remaining);
+                if ($partialResponse === null || $partialResponse === false) {
+                    throw new RqlDriverError('RethinkDB: Broken Pipe.');
                 }
+                if (strlen($response) <= $remaining) {
+                    $response .= $partialResponse;
+                    $remaining -= strlen($partialResponse);
+                    if (strlen($response) < 4 + 8) {
+                        goto header_read;
+                    }
+                }
+                $header = unpack('Vtoken/Vtoken2/Vsize', $response ?? '');
+                $token = $header['token'];
+                if ($header['token2'] !== 0) {
+                    throw new RqlDriverError('Invalid response from server: Invalid token.');
+                }
+                $size = $header['size'];
+                $partialResponse = '';
+                continue_it:
+                $response = $this->socket->read(limit: $size);
+
+                if (strlen($response) !== $size) {
+                    $partialResponse .= $response;
+                    $size -= strlen($response);
+                    goto continue_it;
+                }
+
+                if (!empty($partialResponse)) {
+                    $response = $partialResponse . $response;
+                }
+
+                try {
+                    $response = json_decode($response, true, flags: JSON_THROW_ON_ERROR);
+                } catch (\JsonException $exception) {
+                    throw new RqlDriverError('Invalid response from server: Failed to decode JSON.', previous: $exception);
+                }
+
+                $handler = $this->activeTokens[$token] ?? null;
+                if ($handler === null) {
+                    throw new RqlDriverError('Unexpected response received from server: ' . json_encode($response));
+                }
+
+                [$check, $respond, $query, $error] = $handler;
+                $errored = false;
+                try {
+                    if (!$check) {
+                        $this->checkResponse($response, $query);
+                    }
+                } catch (\Throwable $e) {
+                    $error($e);
+                    $errored = true;
+                } finally {
+                    unset($this->activeTokens[$token]);
+                }
+
+                if (!$errored) {
+                    $respond($response);
+                }
+
+                $lock->release();
             }
-			$header = unpack('Vtoken/Vtoken2/Vsize', $response ?? '');
-			$token = $header['token'];
-			if ($header['token2'] !== 0) {
-				throw new RqlDriverError('Invalid response from server: Invalid token.');
-			}
-			$size = $header['size'];
-            $partialResponse = '';
-            continue_it:
-            $response = $this->socket->read(limit: $size);
-
-            if(strlen($response) !== $size) {
-                $partialResponse .= $response;
-                $size -= strlen($response);
-                goto continue_it;
-            }
-
-            if(!empty($partialResponse)) {
-                $response = $partialResponse . $response;
-            }
-
-			try {
-				$response = json_decode($response, true, flags: JSON_THROW_ON_ERROR);
-			} catch (\JsonException $exception) {
-				throw new RqlDriverError('Invalid response from server: Failed to decode JSON.', previous: $exception);
-			}
-
-			$handler = $this->activeTokens[$token] ?? null;
-			if ($handler === null) {
-				throw new RqlDriverError('Unexpected response received from server: ' . json_encode($response));
-			}
-
-			[$check, $respond, $query, $error] = $handler;
-			$errored = false;
-			try {
-				if (!$check) {
-					$this->checkResponse($response, $query);
-				}
-			} catch (\Throwable $e) {
-				$error($e);
-				$errored = true;
-			} finally {
-				unset($this->activeTokens[$token]);
-			}
-
-			if (!$errored) {
-				$respond($response);
-			}
-
-			$this->onReceive();
-		});
+		})->ignore();
 	}
 
 	private function checkResponse(array $response, Query $query = null): void
